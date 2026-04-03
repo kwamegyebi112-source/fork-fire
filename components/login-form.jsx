@@ -9,6 +9,7 @@ export default function LoginForm() {
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -37,6 +38,7 @@ export default function LoginForm() {
   return (
     <article className="auth-card auth-card-compact">
       <h2 className="auth-card-title">Owner Login</h2>
+      <p className="auth-card-copy">Your private tracker — no one else can see this data.</p>
 
       <form className="auth-form" onSubmit={handleSubmit}>
         <label className="field">
@@ -57,21 +59,39 @@ export default function LoginForm() {
 
         <label className="field">
           <span>Password</span>
-          <input
-            type="password"
-            autoComplete="current-password"
-            enterKeyHint="go"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Password"
-            required
-          />
+          <div className="password-field">
+            <input
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              enterKeyHint="go"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Password"
+              required
+            />
+            <button
+              className="password-toggle"
+              type="button"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
         </label>
 
         {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
         <button className="primary-button auth-submit" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in..." : "Log in"}
+          {isSubmitting ? (
+            <>
+              <span className="button-spinner" aria-hidden="true" />
+              <span>Signing in...</span>
+            </>
+          ) : (
+            "Sign in →"
+          )}
         </button>
       </form>
     </article>
