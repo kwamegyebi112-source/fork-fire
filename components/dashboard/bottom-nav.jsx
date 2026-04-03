@@ -37,18 +37,20 @@ const navItems = [
 
 export default function BottomNav({ activeView, onChange }) {
   return (
-    <nav className="tracker-bottom-nav" aria-label="Dashboard sections">
-      {navItems.map((item) => (
-        <button
-          key={item.id}
-          className={`tracker-bottom-nav-item ${activeView === item.id ? "is-active" : ""}`}
-          type="button"
-          onClick={() => onChange(item.id)}
-        >
-          {item.icon}
-          <span>{item.label}</span>
-        </button>
-      ))}
-    </nav>
+    <div className="tracker-bottom-dock">
+      <nav className="tracker-bottom-nav" aria-label="Dashboard sections">
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            className={`tracker-bottom-nav-item ${activeView === item.id ? "is-active" : ""}`}
+            type="button"
+            onClick={() => onChange(item.id)}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
   );
 }

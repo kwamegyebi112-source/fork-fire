@@ -1487,7 +1487,7 @@ a {
 
 .tracker-app-shell {
   width: min(460px, calc(100% - 24px));
-  padding: 22px 0 calc(132px + env(safe-area-inset-bottom, 0px));
+  padding: 22px 0 calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 .tracker-app-shell > * + * {
@@ -2000,12 +2000,20 @@ a {
   font-size: 0.92rem;
 }
 
-.tracker-bottom-nav {
+.tracker-bottom-dock {
   position: fixed;
-  left: 50%;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  inset-inline: 0;
+  bottom: 0;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(255, 253, 251, 0), var(--paper-strong) 22%, var(--paper-strong) 100%);
+  box-shadow: 0 -18px 36px rgba(88, 68, 68, 0.08);
+  backdrop-filter: none;
+  z-index: 30;
+}
+
+.tracker-bottom-nav {
   width: min(460px, calc(100% - 24px));
+  margin: 0 auto;
   padding: 6px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2014,9 +2022,7 @@ a {
   background: var(--paper-strong);
   border: 1px solid rgba(255, 255, 255, 0.92);
   box-shadow: var(--shadow-strong);
-  backdrop-filter: none;
   overflow: hidden;
-  z-index: 30;
 }
 
 .tracker-bottom-nav-item {

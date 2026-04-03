@@ -1,4 +1,5 @@
 import { Sora, Bebas_Neue, Plus_Jakarta_Sans } from "next/font/google";
+import PwaInstaller from "@/components/pwa-installer";
 import "./globals.css";
 
 const sora = Sora({
@@ -20,14 +21,35 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "Fork N' Fire | Owner Login",
+  title: "Fork N' Fire",
   description: "Owner login and daily tracker for Fork N' Fire.",
+  applicationName: "Fork N' Fire",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Fork N' Fire",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+};
+
+export const viewport = {
+  themeColor: "#fffdfb",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${sora.variable} ${bebasNeue.variable} ${plusJakartaSans.variable}`}>{children}</body>
+      <body className={`${sora.variable} ${bebasNeue.variable} ${plusJakartaSans.variable}`}>
+        <PwaInstaller />
+        {children}
+      </body>
     </html>
   );
 }
