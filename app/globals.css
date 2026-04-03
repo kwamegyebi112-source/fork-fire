@@ -2009,8 +2009,8 @@ a {
   margin: 0 auto;
   padding: 6px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
   border-radius: 24px;
   background: var(--paper-strong);
   border: 1px solid rgba(255, 255, 255, 0.92);
@@ -2651,6 +2651,92 @@ body.modal-open {
   background: linear-gradient(180deg, rgba(198, 64, 49, 0.08), rgba(255, 255, 255, 0.6));
 }
 
+/* --- View transition animations --- */
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tracker-view-panel {
+  transition: opacity 0.15s ease;
+}
+
+.tracker-view-exit {
+  opacity: 0;
+}
+
+.tracker-view-enter {
+  animation: view-enter 0.25s ease-out;
+}
+
+/* --- Tappable log rows --- */
+.tracker-log-main--tappable {
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background-color 0.15s ease;
+}
+
+.tracker-log-main--tappable:hover {
+  background: rgba(47, 54, 85, 0.04);
+}
+
+/* --- Log row action buttons --- */
+.tracker-log-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.tracker-icon-button--edit {
+  border-color: rgba(47, 54, 85, 0.1);
+  background: rgba(47, 54, 85, 0.05);
+  color: var(--navy);
+}
+
+/* --- Toast undo action button --- */
+.tracker-toast-action {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--orange);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.tracker-toast-action:hover {
+  background: #fff;
+}
+
+/* --- Archived row --- */
+.tracker-log-row--archived {
+  opacity: 0.6;
+}
+
+/* --- Menu manager --- */
+.tracker-menu-manager {
+  display: grid;
+  gap: 12px;
+}
+
+.tracker-menu-add {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 40px;
+}
+
 @media (max-width: 420px) {
   .insights-highlights {
     grid-template-columns: minmax(0, 1fr);
@@ -2658,5 +2744,9 @@ body.modal-open {
 
   .insights-margin-value {
     font-size: 1.05rem;
+  }
+
+  .tracker-bottom-nav-item {
+    font-size: 0.66rem;
   }
 }

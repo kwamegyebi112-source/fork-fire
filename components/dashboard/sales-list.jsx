@@ -15,6 +15,18 @@ const deleteIcon = (
   </svg>
 );
 
+const editIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M15.232 5.232l3.536 3.536M9 13l-2 6 6-2 9.373-9.373a2.5 2.5 0 00-3.536-3.536L9 13z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const emptyIcon = (
   <svg className="tracker-empty-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
     <rect x="8" y="10" width="32" height="28" rx="5" stroke="currentColor" strokeWidth="2" />
@@ -30,10 +42,7 @@ function formatCurrency(value) {
 }
 
 function formatTime(value) {
-  if (!value) {
-    return "--:--";
-  }
-
+  if (!value) return "--:--";
   return entryTime.format(new Date(value));
 }
 
@@ -42,11 +51,8 @@ export default function SalesList({
   description,
   sales,
   isLoading,
-  pendingDelete,
-  busyAction,
-  onRequestDelete,
-  onCancelDelete,
-  onConfirmDelete,
+  onEdit,
+  onDelete,
 }) {
   return (
     <section className="tracker-log-card">
@@ -66,47 +72,37 @@ export default function SalesList({
         </div>
       ) : sales.length ? (
         <div className="tracker-log-list">
-          {sales.map((sale) => {
-            const isPending = pendingDelete?.type === "sales" && pendingDelete.id === sale.id;
-
-            return (
-              <article className={`tracker-log-row${isPending ? " is-pending-delete" : ""}`} key={sale.id}>
-                <div className="tracker-log-main">
-                  <strong>{sale.item_name}</strong>
-                  <small>
-                    Qty {sale.quantity} | {formatTime(sale.created_at)}
-                  </small>
+          {sales.map((sale) => (
+            <article className="tracker-log-row" key={sale.id}>
+              <div className="tracker-log-main tracker-log-main--tappable" role="button" tabIndex={0} onClick={() => onEdit(sale)} onKeyDown={(e) => e.key === "Enter" && onEdit(sale)}>
+                <strong>{sale.item_name}</strong>
+                <small>
+                  Qty {sale.quantity} | {formatTime(sale.created_at)}
+                </small>
+              </div>
+              <div className="tracker-log-side">
+                <span>{formatCurrency(sale.total)}</span>
+                <div className="tracker-log-actions">
+                  <button
+                    className="tracker-icon-button tracker-icon-button--small tracker-icon-button--edit"
+                    type="button"
+                    aria-label="Edit sale"
+                    onClick={() => onEdit(sale)}
+                  >
+                    {editIcon}
+                  </button>
+                  <button
+                    className="tracker-icon-button tracker-icon-button--small"
+                    type="button"
+                    aria-label="Delete sale"
+                    onClick={() => onDelete(sale.id)}
+                  >
+                    {deleteIcon}
+                  </button>
                 </div>
-                <div className="tracker-log-side">
-                  <span>{formatCurrency(sale.total)}</span>
-                  {isPending ? (
-                    <div className="tracker-inline-actions">
-                      <button
-                        className="tracker-inline-button tracker-inline-button--danger"
-                        type="button"
-                        disabled={busyAction === "sales-delete"}
-                        onClick={() => onConfirmDelete("sales", sale.id)}
-                      >
-                        Delete
-                      </button>
-                      <button className="tracker-inline-button" type="button" onClick={onCancelDelete}>
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="tracker-icon-button tracker-icon-button--small"
-                      type="button"
-                      aria-label="Delete sale"
-                      onClick={() => onRequestDelete({ type: "sales", id: sale.id })}
-                    >
-                      {deleteIcon}
-                    </button>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+              </div>
+            </article>
+          ))}
         </div>
       ) : (
         <div className="tracker-empty">

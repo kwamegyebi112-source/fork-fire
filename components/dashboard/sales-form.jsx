@@ -14,6 +14,7 @@ export default function SalesForm({
   onItemChange,
   onFieldChange,
   onSubmit,
+  isEditing,
 }) {
   return (
     <form className="tracker-entry-form tracker-entry-form--modal" onSubmit={onSubmit}>
@@ -65,7 +66,7 @@ export default function SalesForm({
       </div>
 
       <button className="tracker-primary-button tracker-primary-button--full" type="submit" disabled={busyAction === "sale"}>
-        {busyAction === "sale" ? "Saving..." : "Save sale"}
+        {busyAction === "sale" ? "Saving..." : isEditing ? "Update sale" : "Save sale"}
       </button>
     </form>
   );

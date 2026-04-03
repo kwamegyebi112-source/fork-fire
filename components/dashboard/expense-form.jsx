@@ -4,6 +4,7 @@ export default function ExpenseForm({
   selectedDate,
   onFieldChange,
   onSubmit,
+  isEditing,
 }) {
   return (
     <form className="tracker-entry-form tracker-entry-form--modal" onSubmit={onSubmit}>
@@ -41,7 +42,7 @@ export default function ExpenseForm({
         type="submit"
         disabled={busyAction === "expense"}
       >
-        {busyAction === "expense" ? "Saving..." : "Save expense"}
+        {busyAction === "expense" ? "Saving..." : isEditing ? "Update expense" : "Save expense"}
       </button>
     </form>
   );

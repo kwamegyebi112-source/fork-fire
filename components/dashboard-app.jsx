@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import DateBar from "@/components/dashboard/date-bar";
 import ExpenseForm from "@/components/dashboard/expense-form";
 import ExpenseList from "@/components/dashboard/expense-list";
 import InsightsPanel from "@/components/dashboard/insights-panel";
+import MenuManager from "@/components/dashboard/menu-manager";
 import SalesForm from "@/components/dashboard/sales-form";
 import SalesList from "@/components/dashboard/sales-list";
 import SnapshotCard from "@/components/dashboard/snapshot-card";
@@ -30,57 +31,65 @@ import {
 } from "@/lib/dashboard";
 import { createClient } from "@/lib/supabase/client";
 
-const menuItems = [
-  {
-    id: "fried-yam",
-    name: "Fried Yam + Pork/Chicken",
-    currentPrice: 40,
-  },
-  {
-    id: "jollof-rice",
-    name: "Jollof Rice + Pork/Chicken",
-    currentPrice: 40,
-  },
-  {
-    id: "loaded-angwamo",
-    name: "Loaded Angwamo",
-    currentPrice: 50,
-  },
-  {
-    id: "kenkey-fish",
-    name: "Kenkey + Fish",
-    currentPrice: 20,
-  },
+const defaultMenuItems = [
+  { id: "fried-yam", name: "Fried Yam + Pork/Chicken", currentPrice: 40, archived: false },
+  { id: "jollof-rice", name: "Jollof Rice + Pork/Chicken", currentPrice: 40, archived: false },
+  { id: "loaded-angwamo", name: "Loaded Angwamo", currentPrice: 50, archived: false },
+  { id: "kenkey-fish", name: "Kenkey + Fish", currentPrice: 20, archived: false },
 ];
 
-const emptySaleForm = {
-  itemId: menuItems[0].id,
-  quantity: "1",
-  unitPrice: String(menuItems[0].currentPrice),
-};
+const MENU_STORAGE_KEY = "fork-n-fire-menu-items";
 
-const emptyExpenseForm = {
-  name: "",
-  amount: "",
-};
+function loadMenuItems() {
+  try {
+    const stored = localStorage.getItem(MENU_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch {}
+  return defaultMenuItems;
+}
+
+function saveMenuItems(items) {
+  try {
+    localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(items));
+  } catch {}
+}
+
+const emptyExpenseForm = { name: "", amount: "" };
+
+const UNDO_TIMEOUT = 5000;
 
 export default function DashboardApp({ displayName }) {
   const router = useRouter();
   const supabase = createClient();
   const expenseUploadInputRef = useRef(null);
+  const undoTimerRef = useRef(null);
 
   const [activeView, setActiveView] = useState("dashboard");
+  const [prevView, setPrevView] = useState("dashboard");
+  const [transitioning, setTransitioning] = useState(false);
   const [dateFilter, setDateFilter] = useState(createTodayFilter());
   const [salesData, setSalesData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
-  const [saleForm, setSaleForm] = useState(emptySaleForm);
-  const [expenseForm, setExpenseForm] = useState(emptyExpenseForm);
+  const [menuItems, setMenuItems] = useState(defaultMenuItems);
+  const [saleForm, setSaleForm] = useState(null);
+  const [expenseForm, setExpenseForm] = useState(null);
+  const [editingSale, setEditingSale] = useState(null);
+  const [editingExpense, setEditingExpense] = useState(null);
   const [busyAction, setBusyAction] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [pendingDelete, setPendingDelete] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [isSaleComposerOpen, setIsSaleComposerOpen] = useState(false);
   const [isExpenseComposerOpen, setIsExpenseComposerOpen] = useState(false);
+  const [undoPending, setUndoPending] = useState(null);
+
+  const activeMenuItems = useMemo(() => menuItems.filter((item) => !item.archived), [menuItems]);
+
+  useEffect(() => {
+    setMenuItems(loadMenuItems());
+  }, []);
 
   const dateBounds = useMemo(() => getDateBounds(dateFilter), [dateFilter]);
   const entryDate = dateFilter.type === "range" ? dateBounds.to : dateBounds.from;
@@ -91,13 +100,13 @@ export default function DashboardApp({ displayName }) {
   );
   const metrics = useMemo(() => computeMetrics(filteredSales, filteredExpenses), [filteredSales, filteredExpenses]);
   const trackerSubtitle =
-    activeView === "expenses" ? "Expenses" : activeView === "sales" ? "Sales" : "Sales Tracker";
+    activeView === "expenses" ? "Expenses" : activeView === "sales" ? "Sales" : activeView === "menu" ? "Menu" : "Sales Tracker";
 
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
-
-    if (hash === "dashboard" || hash === "sales" || hash === "expenses") {
+    if (["dashboard", "sales", "expenses", "menu"].includes(hash)) {
       setActiveView(hash);
+      setPrevView(hash);
     }
   }, []);
 
@@ -146,48 +155,67 @@ export default function DashboardApp({ displayName }) {
     }
   }
 
-  function pushToast(message, tone = "success") {
+  function pushToast(message, tone = "success", action = null) {
     const id = crypto.randomUUID();
-    setToasts((current) => [...current, { id, message, tone }]);
+    setToasts((current) => [...current, { id, message, tone, action }]);
 
+    const timeout = action ? UNDO_TIMEOUT : 3000;
     window.setTimeout(() => {
       setToasts((current) => current.filter((toast) => toast.id !== id));
-    }, 3000);
+    }, timeout);
+
+    return id;
   }
 
   function dismissToast(id) {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }
 
-  function handleSaleItemChange(itemId) {
-    const selectedMenu = menuItems.find((item) => item.id === itemId) || menuItems[0];
+  // --- Sale form handlers ---
 
+  function openSaleComposer(sale = null) {
+    if (sale) {
+      setEditingSale(sale);
+      setSaleForm({
+        itemId: sale.item_id || activeMenuItems[0]?.id || "",
+        quantity: String(sale.quantity),
+        unitPrice: String(sale.unit_price),
+      });
+    } else {
+      setEditingSale(null);
+      const first = activeMenuItems[0];
+      setSaleForm({
+        itemId: first?.id || "",
+        quantity: "1",
+        unitPrice: String(first?.currentPrice || 0),
+      });
+    }
+    setIsSaleComposerOpen(true);
+  }
+
+  function closeSaleComposer() {
+    setIsSaleComposerOpen(false);
+    setEditingSale(null);
+    setSaleForm(null);
+  }
+
+  function handleSaleItemChange(itemId) {
+    const selectedMenu = activeMenuItems.find((item) => item.id === itemId) || activeMenuItems[0];
     setSaleForm((current) => ({
       ...current,
-      itemId: selectedMenu.id,
-      unitPrice: String(selectedMenu.currentPrice),
+      itemId: selectedMenu?.id || "",
+      unitPrice: String(selectedMenu?.currentPrice || 0),
     }));
   }
 
   function handleSaleFieldChange(field, value) {
-    setSaleForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
-  }
-
-  function handleExpenseFieldChange(field, value) {
-    setExpenseForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setSaleForm((current) => ({ ...current, [field]: value }));
   }
 
   async function handleSaleSubmit(event) {
     event.preventDefault();
 
-    const { error, payload } = buildSalePayload(saleForm, menuItems, entryDate);
-
+    const { error, payload } = buildSalePayload(saleForm, activeMenuItems, entryDate);
     if (error || !payload) {
       pushToast(error || "Could not save sale.", "error");
       return;
@@ -195,25 +223,75 @@ export default function DashboardApp({ displayName }) {
 
     setBusyAction("sale");
 
-    const { error: insertError } = await supabase.from("sales").insert(payload);
-    setBusyAction("");
+    if (editingSale) {
+      const { data, error: updateError } = await supabase
+        .from("sales")
+        .update(payload)
+        .eq("id", editingSale.id)
+        .select();
+      setBusyAction("");
 
-    if (insertError) {
-      pushToast(insertError.message, "error");
-      return;
+      if (updateError) {
+        pushToast(updateError.message, "error");
+        return;
+      }
+      if (!data?.length) {
+        pushToast("Update failed — no rows changed. Check permissions.", "error");
+        return;
+      }
+
+      closeSaleComposer();
+      pushToast("Sale updated.", "success");
+    } else {
+      const { data, error: insertError } = await supabase.from("sales").insert(payload).select();
+      setBusyAction("");
+
+      if (insertError) {
+        pushToast(insertError.message, "error");
+        return;
+      }
+      if (!data?.length) {
+        pushToast("Sale was not saved — check database permissions.", "error");
+        return;
+      }
+
+      closeSaleComposer();
+      pushToast("Sale saved.", "success");
     }
 
-    setSaleForm(emptySaleForm);
-    setIsSaleComposerOpen(false);
-    pushToast("Sale saved.", "success");
     await loadRecords(dateFilter);
+  }
+
+  // --- Expense form handlers ---
+
+  function openExpenseComposer(expense = null) {
+    if (expense) {
+      setEditingExpense(expense);
+      setExpenseForm({
+        name: expense.expense_name || expense.notes || "",
+        amount: String(expense.amount),
+      });
+    } else {
+      setEditingExpense(null);
+      setExpenseForm({ ...emptyExpenseForm });
+    }
+    setIsExpenseComposerOpen(true);
+  }
+
+  function closeExpenseComposer() {
+    setIsExpenseComposerOpen(false);
+    setEditingExpense(null);
+    setExpenseForm(null);
+  }
+
+  function handleExpenseFieldChange(field, value) {
+    setExpenseForm((current) => ({ ...current, [field]: value }));
   }
 
   async function handleExpenseSubmit(event) {
     event.preventDefault();
 
     const { error, payload } = buildExpensePayload(expenseForm, entryDate);
-
     if (error || !payload) {
       pushToast(error || "Could not save expense.", "error");
       return;
@@ -221,26 +299,50 @@ export default function DashboardApp({ displayName }) {
 
     setBusyAction("expense");
 
-    const { error: insertError } = await supabase.from("expenses").insert(payload);
-    setBusyAction("");
+    if (editingExpense) {
+      const { data, error: updateError } = await supabase
+        .from("expenses")
+        .update(payload)
+        .eq("id", editingExpense.id)
+        .select();
+      setBusyAction("");
 
-    if (insertError) {
-      pushToast(insertError.message, "error");
-      return;
+      if (updateError) {
+        pushToast(updateError.message, "error");
+        return;
+      }
+      if (!data?.length) {
+        pushToast("Update failed — no rows changed. Check permissions.", "error");
+        return;
+      }
+
+      closeExpenseComposer();
+      pushToast("Expense updated.", "success");
+    } else {
+      const { data, error: insertError } = await supabase.from("expenses").insert(payload).select();
+      setBusyAction("");
+
+      if (insertError) {
+        pushToast(insertError.message, "error");
+        return;
+      }
+      if (!data?.length) {
+        pushToast("Expense was not saved — check database permissions.", "error");
+        return;
+      }
+
+      closeExpenseComposer();
+      pushToast("Expense saved.", "success");
     }
 
-    setExpenseForm(emptyExpenseForm);
-    setIsExpenseComposerOpen(false);
-    pushToast("Expense saved.", "success");
     await loadRecords(dateFilter);
   }
 
+  // --- Expense upload ---
+
   async function handleExpenseUpload(event) {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     setBusyAction("expense-upload");
 
@@ -254,23 +356,24 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
-      const { error } = await supabase.from("expenses").insert(payload);
+      const { data, error } = await supabase.from("expenses").insert(payload).select();
 
       if (error) {
         pushToast(error.message, "error");
         return;
       }
+      if (!data?.length) {
+        pushToast("Import failed — check database permissions.", "error");
+        return;
+      }
 
-      pushToast(`${payload.length} expense${payload.length === 1 ? "" : "s"} imported.`, "success");
+      pushToast(`${data.length} expense${data.length === 1 ? "" : "s"} imported.`, "success");
       await loadRecords(dateFilter);
     } catch (error) {
       pushToast(error instanceof Error ? error.message : "Could not import the file.", "error");
     } finally {
       setBusyAction("");
-
-      if (event.target) {
-        event.target.value = "";
-      }
+      if (event.target) event.target.value = "";
     }
   }
 
@@ -279,27 +382,71 @@ export default function DashboardApp({ displayName }) {
       ["Date", "Expense Name", "Category", "Amount (GHS)"],
       [entryDate, "", "", ""],
     ];
-
     downloadCSV("fork-n-fire-expense-template.csv", rows);
     pushToast("Expense template downloaded.", "neutral");
   }
 
-  async function handleDelete(type, id) {
-    setBusyAction(`${type}-delete`);
+  // --- Undo delete ---
 
+  const commitDelete = useCallback(async (type, id) => {
     const { error } = await supabase.from(type).delete().eq("id", id);
-
-    setBusyAction("");
-    setPendingDelete(null);
-
     if (error) {
       pushToast(error.message, "error");
-      return;
+      await loadRecords(dateFilter);
+    }
+  }, [dateFilter]);
+
+  function handleDelete(type, id) {
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      if (undoPending) {
+        commitDelete(undoPending.type, undoPending.id);
+      }
     }
 
-    pushToast(type === "sales" ? "Sale deleted." : "Expense deleted.", "neutral");
-    await loadRecords(dateFilter);
+    if (type === "sales") {
+      setSalesData((current) => current.filter((s) => s.id !== id));
+    } else {
+      setExpenseData((current) => current.filter((e) => e.id !== id));
+    }
+
+    setUndoPending({ type, id });
+
+    const toastId = pushToast(
+      type === "sales" ? "Sale deleted." : "Expense deleted.",
+      "neutral",
+      { label: "Undo" }
+    );
+
+    undoTimerRef.current = setTimeout(() => {
+      commitDelete(type, id);
+      setUndoPending(null);
+      undoTimerRef.current = null;
+    }, UNDO_TIMEOUT);
   }
+
+  function handleUndoDelete(toastId) {
+    if (!undoPending) return;
+
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+
+    setUndoPending(null);
+    dismissToast(toastId);
+    loadRecords(dateFilter);
+    pushToast("Restored.", "success");
+  }
+
+  // --- Menu management ---
+
+  function handleMenuUpdate(updatedItems) {
+    setMenuItems(updatedItems);
+    saveMenuItems(updatedItems);
+  }
+
+  // --- Navigation ---
 
   async function handleLogout() {
     setBusyAction("logout");
@@ -314,7 +461,6 @@ export default function DashboardApp({ displayName }) {
       pushToast("No sales available to export.", "error");
       return;
     }
-
     downloadCSV("fork-n-fire-sales-export.csv", buildSalesExportRows(filteredSales));
     pushToast("Sales exported.", "neutral");
   }
@@ -324,37 +470,49 @@ export default function DashboardApp({ displayName }) {
       pushToast("No expenses available to export.", "error");
       return;
     }
-
     downloadCSV("fork-n-fire-expenses-export.csv", buildExpenseExportRows(filteredExpenses));
     pushToast("Expenses exported.", "neutral");
   }
 
   function handleViewChange(nextView) {
-    setActiveView(nextView);
+    if (nextView === activeView) return;
+    setPrevView(activeView);
+    setTransitioning(true);
+    window.setTimeout(() => {
+      setActiveView(nextView);
+      window.setTimeout(() => setTransitioning(false), 20);
+    }, 150);
   }
 
-  const saleTotalPreview =
-    Math.max(0, Number.parseInt(saleForm.quantity, 10) || 0) *
-    Math.max(0, Number.parseFloat(saleForm.unitPrice) || 0);
+  const saleTotalPreview = saleForm
+    ? Math.max(0, Number.parseInt(saleForm.quantity, 10) || 0) *
+      Math.max(0, Number.parseFloat(saleForm.unitPrice) || 0)
+    : 0;
+
+  const viewClass = `tracker-view-panel${transitioning ? " tracker-view-exit" : " tracker-view-enter"}`;
 
   return (
     <section className="dashboard-shell tracker-app-shell">
       <Topbar displayName={displayName} subtitle={trackerSubtitle} busyAction={busyAction} onLogout={handleLogout} />
 
-      <DateBar
-        dateFilter={dateFilter}
-        onApplyFilter={setDateFilter}
-        onPrevious={() => setDateFilter((current) => shiftDateFilter(current, -1))}
-        onNext={() => setDateFilter((current) => shiftDateFilter(current, 1))}
-        onToday={() => setDateFilter(createTodayFilter())}
-        onYesterday={() => setDateFilter(createYesterdayFilter())}
-      />
+      {activeView !== "menu" ? (
+        <>
+          <DateBar
+            dateFilter={dateFilter}
+            onApplyFilter={setDateFilter}
+            onPrevious={() => setDateFilter((current) => shiftDateFilter(current, -1))}
+            onNext={() => setDateFilter((current) => shiftDateFilter(current, 1))}
+            onToday={() => setDateFilter(createTodayFilter())}
+            onYesterday={() => setDateFilter(createYesterdayFilter())}
+          />
 
-      <SnapshotCard metrics={metrics} dateFilter={dateFilter} isLoading={isLoading} view={activeView} />
+          <SnapshotCard metrics={metrics} dateFilter={dateFilter} isLoading={isLoading} view={activeView} />
+        </>
+      ) : null}
 
       {activeView === "sales" ? (
         <div className="tracker-utility-row">
-          <button className="tracker-utility-button tracker-utility-button--primary" type="button" onClick={() => setIsSaleComposerOpen(true)}>
+          <button className="tracker-utility-button tracker-utility-button--primary" type="button" onClick={() => openSaleComposer()}>
             Add sale
           </button>
           <button className="tracker-utility-button" type="button" onClick={exportSales}>
@@ -365,7 +523,7 @@ export default function DashboardApp({ displayName }) {
 
       {activeView === "expenses" ? (
         <div className="tracker-utility-row tracker-utility-row--wide">
-          <button className="tracker-utility-button tracker-utility-button--primary" type="button" onClick={() => setIsExpenseComposerOpen(true)}>
+          <button className="tracker-utility-button tracker-utility-button--primary" type="button" onClick={() => openExpenseComposer()}>
             Add expense
           </button>
           <button className="tracker-utility-button" type="button" onClick={() => expenseUploadInputRef.current?.click()}>
@@ -380,48 +538,46 @@ export default function DashboardApp({ displayName }) {
         </div>
       ) : null}
 
-      {activeView === "dashboard" ? (
-        <InsightsPanel metrics={metrics} isLoading={isLoading} />
-      ) : (
-        <section className="tracker-screen">
-          <div className="tracker-section-intro">
-            <div>
-              <h2>{activeView === "sales" ? "Sales" : "Expenses"}</h2>
-              <p>
-                {`Showing ${activeView} for ${
-                  dateFilter.type === "range" ? `${dateBounds.from} to ${dateBounds.to}` : normalizeDate(dateFilter.value)
-                }.`}
-              </p>
+      <div className={viewClass} key={activeView}>
+        {activeView === "dashboard" ? (
+          <InsightsPanel metrics={metrics} isLoading={isLoading} />
+        ) : activeView === "menu" ? (
+          <MenuManager menuItems={menuItems} onUpdate={handleMenuUpdate} />
+        ) : (
+          <section className="tracker-screen">
+            <div className="tracker-section-intro">
+              <div>
+                <h2>{activeView === "sales" ? "Sales" : "Expenses"}</h2>
+                <p>
+                  {`Showing ${activeView} for ${
+                    dateFilter.type === "range" ? `${dateBounds.from} to ${dateBounds.to}` : normalizeDate(dateFilter.value)
+                  }.`}
+                </p>
+              </div>
             </div>
-          </div>
 
-          {activeView === "sales" ? (
-            <SalesList
-              title="Sales list"
-              description="Item name, quantity, amount, and time."
-              sales={filteredSales}
-              isLoading={isLoading}
-              pendingDelete={pendingDelete}
-              busyAction={busyAction}
-              onRequestDelete={setPendingDelete}
-              onCancelDelete={() => setPendingDelete(null)}
-              onConfirmDelete={handleDelete}
-            />
-          ) : (
-            <ExpenseList
-              title="Expense list"
-              description="Expense name, amount, category, and time."
-              expenses={filteredExpenses}
-              isLoading={isLoading}
-              pendingDelete={pendingDelete}
-              busyAction={busyAction}
-              onRequestDelete={setPendingDelete}
-              onCancelDelete={() => setPendingDelete(null)}
-              onConfirmDelete={handleDelete}
-            />
-          )}
-        </section>
-      )}
+            {activeView === "sales" ? (
+              <SalesList
+                title="Sales list"
+                description="Item name, quantity, amount, and time."
+                sales={filteredSales}
+                isLoading={isLoading}
+                onEdit={openSaleComposer}
+                onDelete={(id) => handleDelete("sales", id)}
+              />
+            ) : (
+              <ExpenseList
+                title="Expense list"
+                description="Expense name, amount, category, and time."
+                expenses={filteredExpenses}
+                isLoading={isLoading}
+                onEdit={openExpenseComposer}
+                onDelete={(id) => handleDelete("expenses", id)}
+              />
+            )}
+          </section>
+        )}
+      </div>
 
       <input
         ref={expenseUploadInputRef}
@@ -432,12 +588,16 @@ export default function DashboardApp({ displayName }) {
       />
 
       <BottomNav activeView={activeView} onChange={handleViewChange} />
-      <ToastViewport toasts={toasts} onDismiss={dismissToast} />
+      <ToastViewport toasts={toasts} onDismiss={dismissToast} onAction={handleUndoDelete} />
 
-      {isSaleComposerOpen ? (
-        <ModalShell title="Add sale" subtitle={`Save to ${entryDate}`} onClose={() => setIsSaleComposerOpen(false)}>
+      {isSaleComposerOpen && saleForm ? (
+        <ModalShell
+          title={editingSale ? "Edit sale" : "Add sale"}
+          subtitle={`Save to ${entryDate}`}
+          onClose={closeSaleComposer}
+        >
           <SalesForm
-            menuItems={menuItems}
+            menuItems={activeMenuItems}
             saleForm={saleForm}
             busyAction={busyAction}
             total={saleTotalPreview}
@@ -445,15 +605,16 @@ export default function DashboardApp({ displayName }) {
             onItemChange={handleSaleItemChange}
             onFieldChange={handleSaleFieldChange}
             onSubmit={handleSaleSubmit}
+            isEditing={!!editingSale}
           />
         </ModalShell>
       ) : null}
 
-      {isExpenseComposerOpen ? (
+      {isExpenseComposerOpen && expenseForm ? (
         <ModalShell
-          title="Add expense"
+          title={editingExpense ? "Edit expense" : "Add expense"}
           subtitle={`Save to ${entryDate}`}
-          onClose={() => setIsExpenseComposerOpen(false)}
+          onClose={closeExpenseComposer}
         >
           <ExpenseForm
             expenseForm={expenseForm}
@@ -461,6 +622,7 @@ export default function DashboardApp({ displayName }) {
             selectedDate={entryDate}
             onFieldChange={handleExpenseFieldChange}
             onSubmit={handleExpenseSubmit}
+            isEditing={!!editingExpense}
           />
         </ModalShell>
       ) : null}
@@ -498,7 +660,7 @@ function ModalShell({ title, subtitle, onClose, children }) {
   );
 }
 
-function ToastViewport({ toasts, onDismiss }) {
+function ToastViewport({ toasts, onDismiss, onAction }) {
   return (
     <div className="tracker-toast-stack" aria-live="polite">
       {toasts.map((toast) => (
@@ -507,6 +669,15 @@ function ToastViewport({ toasts, onDismiss }) {
             {toast.tone === "error" ? "!" : toast.tone === "neutral" ? "i" : "+"}
           </span>
           <span>{toast.message}</span>
+          {toast.action ? (
+            <button
+              className="tracker-toast-action"
+              type="button"
+              onClick={() => onAction(toast.id)}
+            >
+              {toast.action.label}
+            </button>
+          ) : null}
           <button
             className="tracker-toast-dismiss"
             type="button"
