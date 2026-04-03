@@ -16,13 +16,13 @@
   --negative: #b94739;
   --positive-bg: rgba(22, 121, 87, 0.12);
   --negative-bg: rgba(185, 71, 57, 0.12);
-  --shadow-soft: 0 12px 30px rgba(12, 26, 66, 0.08);
-  --shadow-card: 0 22px 50px rgba(12, 26, 66, 0.12);
+  --shadow-soft: 0 10px 24px rgba(12, 26, 66, 0.07);
+  --shadow-card: 0 18px 40px rgba(12, 26, 66, 0.1);
   --shadow-orange: 0 8px 24px rgba(232, 84, 32, 0.22);
-  --radius-xl: 28px;
-  --radius-lg: 22px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
 }
 
 *,
@@ -205,7 +205,7 @@ a {
   z-index: 1;
   width: min(1080px, calc(100% - 24px));
   margin: 0 auto;
-  padding: 18px 0 calc(86px + env(safe-area-inset-bottom, 0px));
+  padding: 20px 0 calc(74px + env(safe-area-inset-bottom, 0px));
 }
 
 .auth-shell {
@@ -213,6 +213,10 @@ a {
   gap: 18px;
   align-items: center;
   justify-items: center;
+}
+
+.dashboard-shell > * + * {
+  margin-top: 14px;
 }
 
 .auth-shell-compact {
@@ -272,12 +276,12 @@ a {
 }
 
 .app-title {
-  font-size: clamp(1.95rem, 6vw, 2.8rem);
+  font-size: clamp(1.6rem, 4.8vw, 2.2rem);
 }
 
 .auth-card-title,
 .section-title {
-  font-size: clamp(1.35rem, 4.8vw, 1.9rem);
+  font-size: clamp(1.12rem, 3.8vw, 1.5rem);
 }
 
 .auth-card-compact {
@@ -302,8 +306,8 @@ a {
 .toast span:last-child {
   margin: 0;
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
-  font-size: 0.94rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.45;
   color: var(--muted);
 }
 
@@ -348,7 +352,7 @@ a {
 .field input,
 .field select {
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   border: 1px solid rgba(12, 26, 66, 0.12);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.82);
@@ -356,7 +360,7 @@ a {
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
   font-size: 16px;
   font-weight: 600;
-  padding: 13px 14px;
+  padding: 11px 13px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
@@ -426,9 +430,9 @@ a {
 .ghost-button,
 .nav-button,
 .today-button {
-  min-height: 44px;
-  padding: 11px 16px;
-  font-size: 0.92rem;
+  min-height: 40px;
+  padding: 10px 14px;
+  font-size: 0.86rem;
 }
 
 .primary-button:hover,
@@ -481,7 +485,7 @@ a {
 
 .auth-submit {
   width: 100%;
-  min-height: 50px;
+  min-height: 46px;
 }
 
 .button-spinner {
@@ -525,18 +529,18 @@ a {
 .spotlight-card,
 .stats-card,
 .content-card {
-  padding: 18px;
+  padding: 15px;
 }
 
 .app-header {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .brand-cluster,
 .user-cluster {
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 
 .brand-cluster {
@@ -549,8 +553,8 @@ a {
 
 .user-pill {
   max-width: 100%;
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
   background: linear-gradient(155deg, rgba(12, 26, 66, 0.95), rgba(26, 46, 114, 0.92));
   color: #fff;
   box-shadow: 0 18px 36px rgba(12, 26, 66, 0.18);
@@ -582,7 +586,7 @@ a {
 
 .date-summary-card {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .date-nav {
@@ -601,7 +605,7 @@ a {
   isolation: isolate;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  padding: 22px;
+  padding: 18px;
   color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
@@ -656,27 +660,27 @@ a {
 
 .hero-value {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(2.5rem, 10vw, 4rem);
+  font-size: clamp(1.95rem, 7vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.92;
 }
 
 .hero-date {
-  margin-top: 8px;
+  margin-top: 6px;
   color: rgba(255, 255, 255, 0.82);
 }
 
 .status-pill {
   display: inline-flex;
   width: fit-content;
-  margin-top: 14px;
-  padding: 8px 12px;
+  margin-top: 10px;
+  padding: 7px 10px;
   border-radius: 999px;
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
 }
 
@@ -702,13 +706,13 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 10px 12px;
 }
 
 .tab-chip {
   flex: 1 1 110px;
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 40px;
+  padding: 0 12px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
@@ -752,17 +756,17 @@ a {
 .dashboard-panels,
 .mobile-grid {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .section-head {
   display: grid;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .section-meta {
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 }
 
 .spotlight-card {
@@ -779,7 +783,7 @@ a {
 .spotlight-grid,
 .stats-grid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .highlight-panel,
@@ -803,7 +807,7 @@ a {
 }
 
 .highlight-panel {
-  padding: 18px;
+  padding: 14px;
 }
 
 .highlight-panel:hover,
@@ -815,9 +819,9 @@ a {
 
 .highlight-value {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   font-family: var(--font-sora), sans-serif;
-  font-size: 1.08rem;
+  font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: -0.035em;
   color: var(--navy);
@@ -829,8 +833,8 @@ a {
 
 .stat-block {
   position: relative;
-  min-height: 126px;
-  padding: 20px 18px 18px;
+  min-height: 104px;
+  padding: 16px 14px 14px;
   overflow: hidden;
 }
 
@@ -851,9 +855,9 @@ a {
 
 .stat-block strong {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(1.7rem, 7vw, 2.4rem);
+  font-size: clamp(1.35rem, 5vw, 1.9rem);
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 0.96;
@@ -861,7 +865,7 @@ a {
 
 .stat-block small {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--muted);
 }
 
@@ -905,14 +909,14 @@ a {
 .menu-list,
 .mix-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .trend-grid {
   grid-auto-flow: column;
   grid-auto-columns: minmax(54px, 1fr);
   align-items: end;
-  min-height: 220px;
+  min-height: 190px;
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
@@ -951,7 +955,7 @@ a {
 .trend-frame {
   position: relative;
   width: 100%;
-  height: 150px;
+  height: 124px;
 }
 
 .trend-frame::before {
@@ -996,7 +1000,7 @@ a {
 }
 
 .mix-item {
-  padding: 16px;
+  padding: 14px;
 }
 
 .mix-item:hover {
@@ -1042,12 +1046,12 @@ a {
 
 .menu-card,
 .record-card {
-  padding: 16px;
+  padding: 14px;
 }
 
 .menu-card {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .menu-card strong,
@@ -1059,9 +1063,9 @@ a {
 .menu-price-now,
 .menu-price-old {
   display: block;
-  margin-top: 4px;
+  margin-top: 3px;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
 .menu-price-old {
@@ -1070,11 +1074,11 @@ a {
 
 .two-col-grid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .preview-card {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid rgba(12, 26, 66, 0.08);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(12, 26, 66, 0.05), rgba(255, 255, 255, 0.7));
@@ -1092,9 +1096,9 @@ a {
 
 .preview-card strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(1.2rem, 4vw, 1.6rem);
+  font-size: clamp(1.05rem, 3.4vw, 1.35rem);
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--navy);
@@ -1105,7 +1109,7 @@ a {
 .record-main,
 .record-side {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .form-footer,
@@ -1125,8 +1129,8 @@ a {
 }
 
 .icon-button {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: 1px solid rgba(185, 71, 57, 0.12);
   border-radius: 12px;
   background: rgba(185, 71, 57, 0.08);
@@ -1162,8 +1166,8 @@ a {
 .empty-state {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  padding: 22px 14px;
+  gap: 8px;
+  padding: 18px 12px;
   border: 1px dashed rgba(12, 26, 66, 0.18);
   border-radius: var(--radius-lg);
   background: rgba(12, 26, 66, 0.04);
@@ -1229,7 +1233,7 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 13px 16px;
+  padding: 11px 14px;
   border: 1px solid rgba(255, 255, 255, 0.88);
   border-radius: 18px;
   background: rgba(255, 253, 250, 0.95);
@@ -1266,7 +1270,7 @@ a {
   .auth-shell,
   .dashboard-shell {
     width: min(1120px, calc(100% - 36px));
-    padding-top: 24px;
+    padding-top: 20px;
   }
 
   .app-header,
@@ -1330,7 +1334,7 @@ a {
 
   .auth-shell.auth-shell-compact {
     width: min(420px, calc(100% - 40px));
-    padding-top: 36px;
+    padding-top: 32px;
   }
 }
 
@@ -1363,7 +1367,7 @@ a {
   .spotlight-card,
   .stats-card,
   .content-card {
-    padding: 14px;
+    padding: 12px;
   }
 
   .auth-brand-name {
@@ -1371,7 +1375,7 @@ a {
   }
 
   .hero-card {
-    padding: 18px;
+    padding: 16px;
   }
 
   .password-toggle {
