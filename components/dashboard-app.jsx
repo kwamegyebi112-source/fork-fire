@@ -240,6 +240,8 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
+      const updated = normalizeSalesRows(data)[0];
+      setSalesData((current) => current.map((s) => (s.id === editingSale.id ? updated : s)));
       closeSaleComposer();
       pushToast("Sale updated.", "success");
     } else {
@@ -255,11 +257,13 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
+      const newRow = normalizeSalesRows(data)[0];
+      setSalesData((current) => [newRow, ...current]);
       closeSaleComposer();
       pushToast("Sale saved.", "success");
     }
 
-    await loadRecords(dateFilter);
+    loadRecords(dateFilter);
   }
 
   // --- Expense form handlers ---
@@ -316,6 +320,8 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
+      const updated = normalizeExpenseRows(data)[0];
+      setExpenseData((current) => current.map((e) => (e.id === editingExpense.id ? updated : e)));
       closeExpenseComposer();
       pushToast("Expense updated.", "success");
     } else {
@@ -331,11 +337,13 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
+      const newRow = normalizeExpenseRows(data)[0];
+      setExpenseData((current) => [newRow, ...current]);
       closeExpenseComposer();
       pushToast("Expense saved.", "success");
     }
 
-    await loadRecords(dateFilter);
+    loadRecords(dateFilter);
   }
 
   // --- Expense upload ---
@@ -367,8 +375,10 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
+      const newRows = normalizeExpenseRows(data);
+      setExpenseData((current) => [...newRows, ...current]);
       pushToast(`${data.length} expense${data.length === 1 ? "" : "s"} imported.`, "success");
-      await loadRecords(dateFilter);
+      loadRecords(dateFilter);
     } catch (error) {
       pushToast(error instanceof Error ? error.message : "Could not import the file.", "error");
     } finally {
