@@ -60,7 +60,6 @@ const emptySaleForm = {
 
 const emptyExpenseForm = {
   name: "",
-  category: "",
   amount: "",
 };
 

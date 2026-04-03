@@ -18,16 +18,6 @@ export default function ExpenseForm({
       </label>
 
       <label className="tracker-field">
-        <span>Category</span>
-        <input
-          type="text"
-          placeholder="Food supplies, transport, packaging"
-          value={expenseForm.category}
-          onChange={(event) => onFieldChange("category", event.target.value)}
-        />
-      </label>
-
-      <label className="tracker-field">
         <span>Amount</span>
         <input
           type="number"

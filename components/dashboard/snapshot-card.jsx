@@ -25,8 +25,8 @@ export default function SnapshotCard({ metrics, dateFilter, isLoading, view }) {
       <section className="tracker-snapshot tracker-snapshot--sales">
         <div className="tracker-snapshot-head">
           <div>
-            <p className="tracker-kicker">Overview</p>
-            <h2>Total Sales: {formatCurrency(metrics.revenue)}</h2>
+            <p className="tracker-kicker">Total Sales</p>
+            <h2>{formatCurrency(metrics.revenue)}</h2>
           </div>
           <span className="tracker-snapshot-date">{summaryLabel}</span>
         </div>
