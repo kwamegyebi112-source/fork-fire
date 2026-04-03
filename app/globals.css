@@ -250,6 +250,11 @@ a {
   filter: drop-shadow(0 14px 24px rgba(12, 26, 66, 0.14));
 }
 
+.app-logo {
+  width: 56px;
+  height: auto;
+}
+
 .auth-brand-name {
   margin: 0;
   font-family: var(--font-bebas), Impact, sans-serif;
@@ -535,6 +540,7 @@ a {
 .app-header {
   display: grid;
   gap: 14px;
+  align-items: start;
 }
 
 .brand-cluster,
@@ -547,8 +553,17 @@ a {
   align-items: center;
 }
 
+.brand-cluster > div {
+  display: grid;
+  gap: 2px;
+}
+
 .user-cluster {
   flex-direction: column;
+}
+
+.user-cluster .ghost-button {
+  align-self: flex-start;
 }
 
 .user-pill {
@@ -587,12 +602,14 @@ a {
 .date-summary-card {
   display: grid;
   gap: 12px;
+  align-items: start;
 }
 
 .date-nav {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
+  align-items: start;
 }
 
 .date-nav .field {
@@ -608,6 +625,10 @@ a {
   padding: 18px;
   color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.date-summary-card .hero-card {
+  align-self: start;
 }
 
 .hero-card::before,
@@ -767,6 +788,10 @@ a {
 
 .section-meta {
   font-size: 0.84rem;
+}
+
+.app-subtitle {
+  font-size: 0.82rem;
 }
 
 .spotlight-card {
@@ -1291,7 +1316,7 @@ a {
 
   .date-nav {
     grid-template-columns: auto minmax(0, 1fr) auto auto;
-    align-items: end;
+    align-items: center;
   }
 
   .date-nav .field {
@@ -1323,6 +1348,10 @@ a {
   .record-side {
     flex-direction: column;
     align-items: flex-end;
+  }
+
+  .user-cluster .ghost-button {
+    align-self: center;
   }
 
   .trend-grid {
