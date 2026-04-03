@@ -70,36 +70,41 @@ export default function DateBar({
   return (
     <>
       <div className="tracker-datebar">
-        <button className="tracker-datebar-arrow" type="button" onClick={onPrevious} aria-label="Previous date">
-          <span aria-hidden="true">{"<"}</span>
-        </button>
-        <button className="tracker-datebar-label" type="button" onClick={() => setIsCustomOpen(true)}>
-          {label}
-        </button>
-        <button className="tracker-datebar-arrow" type="button" onClick={onNext} aria-label="Next date">
-          <span aria-hidden="true">{">"}</span>
-        </button>
-        <button
-          className={`tracker-datebar-chip ${isSameSingleDate(dateFilter, createTodayFilter().value) ? "is-active" : ""}`}
-          type="button"
-          onClick={onToday}
-        >
-          Today
-        </button>
-        <button
-          className={`tracker-datebar-chip ${isSameSingleDate(dateFilter, createYesterdayFilter().value) ? "is-active" : ""}`}
-          type="button"
-          onClick={onYesterday}
-        >
-          Yesterday
-        </button>
-        <button
-          className={`tracker-datebar-chip ${dateFilter.type === "range" ? "is-active" : ""}`}
-          type="button"
-          onClick={() => setIsCustomOpen(true)}
-        >
-          Custom
-        </button>
+        <div className="tracker-datebar-row tracker-datebar-row--nav">
+          <button className="tracker-datebar-arrow" type="button" onClick={onPrevious} aria-label="Previous date">
+            <span aria-hidden="true">{"<"}</span>
+          </button>
+          <button className="tracker-datebar-label" type="button" onClick={() => setIsCustomOpen(true)}>
+            {label}
+          </button>
+          <button className="tracker-datebar-arrow" type="button" onClick={onNext} aria-label="Next date">
+            <span aria-hidden="true">{">"}</span>
+          </button>
+        </div>
+
+        <div className="tracker-datebar-row tracker-datebar-row--filters">
+          <button
+            className={`tracker-datebar-chip ${isSameSingleDate(dateFilter, createTodayFilter().value) ? "is-active" : ""}`}
+            type="button"
+            onClick={onToday}
+          >
+            Today
+          </button>
+          <button
+            className={`tracker-datebar-chip ${isSameSingleDate(dateFilter, createYesterdayFilter().value) ? "is-active" : ""}`}
+            type="button"
+            onClick={onYesterday}
+          >
+            Yesterday
+          </button>
+          <button
+            className={`tracker-datebar-chip ${dateFilter.type === "range" ? "is-active" : ""}`}
+            type="button"
+            onClick={() => setIsCustomOpen(true)}
+          >
+            Custom
+          </button>
+        </div>
       </div>
 
       {isCustomOpen ? (

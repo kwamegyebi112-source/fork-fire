@@ -1487,7 +1487,7 @@ a {
 
 .tracker-app-shell {
   width: min(460px, calc(100% - 24px));
-  padding: 26px 0 calc(108px + env(safe-area-inset-bottom, 0px));
+  padding: 22px 0 calc(100px + env(safe-area-inset-bottom, 0px));
 }
 
 .tracker-app-shell > * + * {
@@ -1528,7 +1528,7 @@ a {
 }
 
 .tracker-brand-copy h1 {
-  font-size: 1.95rem;
+  font-size: 1.7rem;
 }
 
 .tracker-brand-copy p,
@@ -1539,7 +1539,7 @@ a {
 .tracker-snapshot-subcopy {
   margin: 0;
   color: var(--muted);
-  font-size: 0.98rem;
+  font-size: 0.88rem;
   line-height: 1.4;
 }
 
@@ -1597,7 +1597,7 @@ a {
 .tracker-utility-button,
 .tracker-toggle-button,
 .tracker-modal-close {
-  min-height: 42px;
+  min-height: 38px;
 }
 
 .tracker-icon-button:hover,
@@ -1615,7 +1615,7 @@ a {
 }
 
 .tracker-icon-button {
-  width: 42px;
+  width: 38px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -1627,9 +1627,9 @@ a {
 }
 
 .tracker-icon-button--small {
-  width: 32px;
-  min-height: 32px;
-  font-size: 0.82rem;
+  width: 28px;
+  min-height: 28px;
+  font-size: 0.74rem;
   box-shadow: none;
 }
 
@@ -1647,46 +1647,54 @@ a {
   position: sticky;
   top: 10px;
   z-index: 20;
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 8px;
   padding: 8px;
   border-radius: 20px;
-  overflow-x: auto;
-  white-space: nowrap;
-  scrollbar-width: none;
+  overflow: hidden;
 }
 
-.tracker-datebar::-webkit-scrollbar {
-  display: none;
+.tracker-datebar-row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+
+.tracker-datebar-row--nav {
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+}
+
+.tracker-datebar-row--filters {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .tracker-datebar-arrow,
 .tracker-datebar-label,
 .tracker-datebar-chip {
-  flex-shrink: 0;
-  padding: 0 16px;
+  min-width: 0;
+  padding: 0 12px;
   background: rgba(255, 255, 255, 0.78);
   color: var(--navy);
   border: 1px solid var(--line-soft);
+  font-size: 0.86rem;
 }
 
 .tracker-datebar-arrow {
-  width: 42px;
   padding: 0;
 }
 
 .tracker-datebar-label {
-  min-width: 142px;
   justify-content: center;
   display: inline-flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.96rem;
+  font-weight: 800;
 }
 
 .tracker-datebar-chip {
   background: rgba(236, 230, 228, 0.8);
   color: var(--navy-soft);
+  text-align: center;
 }
 
 .tracker-datebar-chip.is-active {
@@ -1697,9 +1705,9 @@ a {
 
 .tracker-snapshot {
   border-radius: 26px;
-  padding: 18px;
+  padding: 16px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .tracker-snapshot-head {
@@ -1712,19 +1720,19 @@ a {
 .tracker-kicker {
   margin: 0 0 8px;
   color: inherit;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .tracker-snapshot-head h2 {
-  font-size: 2.25rem;
+  font-size: 1.85rem;
   line-height: 0.95;
 }
 
 .tracker-snapshot-date {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   color: inherit;
   opacity: 0.8;
   text-align: right;
@@ -1759,23 +1767,23 @@ a {
 .tracker-snapshot-foot {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .tracker-snapshot-foot div {
-  padding-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .tracker-snapshot-foot small {
   display: block;
-  font-size: 0.84rem;
+  font-size: 0.72rem;
 }
 
 .tracker-snapshot-foot strong {
   display: block;
-  margin-top: 6px;
-  font-size: 1.08rem;
+  margin-top: 4px;
+  font-size: 0.94rem;
   font-weight: 800;
 }
 
@@ -1806,28 +1814,24 @@ a {
 
 .tracker-snapshot-stack p {
   color: var(--navy);
-  font-size: 1rem;
+  font-size: 0.88rem;
 }
 
 .tracker-utility-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   padding: 8px;
   border-radius: 20px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.tracker-utility-row::-webkit-scrollbar {
-  display: none;
 }
 
 .tracker-utility-button {
-  flex-shrink: 0;
-  padding: 0 16px;
+  width: 100%;
+  padding: 0 12px;
   background: rgba(255, 255, 255, 0.84);
   color: var(--navy);
   border: 1px solid var(--line-soft);
+  font-size: 0.8rem;
 }
 
 .tracker-utility-button--primary {
@@ -1838,7 +1842,7 @@ a {
 
 .tracker-screen {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .tracker-section-intro {
@@ -1847,7 +1851,7 @@ a {
 }
 
 .tracker-section-intro h2 {
-  font-size: 1.75rem;
+  font-size: 1.38rem;
 }
 
 .tracker-toggle {
@@ -1861,10 +1865,11 @@ a {
 }
 
 .tracker-toggle-button {
-  min-height: 38px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 16px;
   background: transparent;
   color: var(--navy-soft);
+  font-size: 0.82rem;
 }
 
 .tracker-toggle-button.is-active {
@@ -1875,7 +1880,7 @@ a {
 
 .tracker-log-card {
   border-radius: 24px;
-  padding: 16px;
+  padding: 14px;
 }
 
 .tracker-section-head {
@@ -1887,24 +1892,24 @@ a {
 }
 
 .tracker-section-head h3 {
-  font-size: 1.25rem;
+  font-size: 1.04rem;
 }
 
 .tracker-section-head p {
   margin-top: 4px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .tracker-section-head > span {
-  min-width: 34px;
-  height: 34px;
+  min-width: 30px;
+  height: 30px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(47, 54, 85, 0.06);
   color: var(--navy);
-  font-size: 0.88rem;
+  font-size: 0.76rem;
   font-weight: 800;
 }
 
@@ -1917,9 +1922,9 @@ a {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 20px;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.84);
   border: 1px solid var(--line-soft);
 }
@@ -1931,7 +1936,7 @@ a {
 .tracker-log-main strong {
   display: block;
   color: var(--navy);
-  font-size: 1.08rem;
+  font-size: 0.94rem;
   font-weight: 800;
 }
 
@@ -1940,7 +1945,7 @@ a {
 .tracker-empty p,
 .tracker-toast span:last-child {
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.8rem;
 }
 
 .tracker-log-side {
@@ -1962,17 +1967,18 @@ a {
 .tracker-inline-button,
 .tracker-secondary-button,
 .tracker-modal-close {
-  min-height: 38px;
-  padding: 0 14px;
+  min-height: 34px;
+  padding: 0 12px;
   background: rgba(47, 54, 85, 0.06);
   color: var(--navy);
   border: 1px solid var(--line-soft);
+  font-size: 0.8rem;
 }
 
 .tracker-inline-button {
-  min-height: 32px;
-  padding: 0 12px;
-  font-size: 0.82rem;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 0.72rem;
 }
 
 .tracker-inline-button--danger {
@@ -1981,7 +1987,7 @@ a {
 }
 
 .tracker-empty {
-  padding: 18px 16px;
+  padding: 16px 14px;
   border: 1px dashed var(--line-strong);
   border-radius: 20px;
   text-align: center;
@@ -1991,7 +1997,7 @@ a {
 .tracker-empty strong {
   display: block;
   color: var(--navy);
-  font-size: 1rem;
+  font-size: 0.92rem;
 }
 
 .tracker-bottom-nav {
@@ -2000,7 +2006,7 @@ a {
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   width: min(460px, calc(100% - 24px));
-  padding: 8px;
+  padding: 6px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
@@ -2013,7 +2019,7 @@ a {
 }
 
 .tracker-bottom-nav-item {
-  min-height: 56px;
+  min-height: 50px;
   border: none;
   border-radius: 18px;
   background: transparent;
@@ -2021,8 +2027,8 @@ a {
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 4px;
-  font-size: 0.84rem;
+  gap: 2px;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -2059,7 +2065,7 @@ a {
 
 .tracker-modal {
   width: min(420px, 100%);
-  padding: 18px;
+  padding: 16px;
   border-radius: 26px;
   background: var(--paper-strong);
   box-shadow: var(--shadow-strong);
@@ -2083,7 +2089,7 @@ a {
   margin: 0;
   color: var(--navy);
   font-family: var(--font-sora), sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.12rem;
   font-weight: 800;
   letter-spacing: -0.04em;
 }
@@ -2095,11 +2101,12 @@ a {
 }
 
 .tracker-segment {
-  min-height: 42px;
+  min-height: 38px;
   background: rgba(47, 54, 85, 0.06);
   color: var(--navy);
   border: 1px solid var(--line-soft);
   border-radius: 16px;
+  font-size: 0.8rem;
 }
 
 .tracker-segment.is-active {
@@ -2127,7 +2134,7 @@ a {
 .tracker-field span,
 .tracker-preview span {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2137,13 +2144,13 @@ a {
 .tracker-field input,
 .tracker-field select {
   width: 100%;
-  min-height: 46px;
+  min-height: 42px;
   border-radius: 15px;
   border: 1px solid var(--line-soft);
   background: rgba(250, 247, 245, 0.94);
-  padding: 12px 14px;
+  padding: 10px 12px;
   color: var(--navy);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
@@ -2159,7 +2166,7 @@ a {
 }
 
 .tracker-preview {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 18px;
   background: rgba(47, 54, 85, 0.05);
   border: 1px solid var(--line-soft);
@@ -2167,20 +2174,21 @@ a {
 
 .tracker-preview strong {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--navy);
   font-family: var(--font-sora), sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
 .tracker-primary-button {
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 16px;
   background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
   color: #fff;
   box-shadow: 0 14px 28px rgba(255, 99, 40, 0.22);
+  font-size: 0.82rem;
 }
 
 .tracker-primary-button--full {
@@ -2241,5 +2249,55 @@ a {
 
   .tracker-bottom-nav {
     width: min(500px, calc(100% - 32px));
+  }
+}
+
+@media (max-width: 420px) {
+  .tracker-brand-copy h1 {
+    font-size: 1.5rem;
+  }
+
+  .tracker-brand-copy p,
+  .tracker-section-intro p,
+  .tracker-section-head p,
+  .tracker-modal-header p,
+  .tracker-snapshot-stack p,
+  .tracker-snapshot-subcopy {
+    font-size: 0.8rem;
+  }
+
+  .tracker-datebar-row--filters {
+    gap: 6px;
+  }
+
+  .tracker-datebar-label {
+    font-size: 0.9rem;
+  }
+
+  .tracker-datebar-chip,
+  .tracker-utility-button {
+    font-size: 0.76rem;
+    padding-inline: 10px;
+  }
+
+  .tracker-snapshot-head h2 {
+    font-size: 1.62rem;
+  }
+
+  .tracker-section-intro h2 {
+    font-size: 1.18rem;
+  }
+
+  .tracker-toggle-button {
+    padding: 0 13px;
+    font-size: 0.78rem;
+  }
+
+  .tracker-log-main strong {
+    font-size: 0.88rem;
+  }
+
+  .tracker-bottom-nav-item {
+    font-size: 0.7rem;
   }
 }
