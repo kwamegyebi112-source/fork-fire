@@ -2460,3 +2460,203 @@ body.modal-open {
 .tracker-icon-button--small svg {
   display: block;
 }
+
+/* --- Insights Panel --- */
+.tracker-insights {
+  display: grid;
+  gap: 12px;
+}
+
+.insights-card {
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 10px;
+}
+
+.insights-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Profit margin */
+.insights-margin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.insights-margin-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sora), sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.insights-margin-value--positive {
+  color: var(--positive);
+}
+
+.insights-margin-value--negative {
+  color: var(--negative);
+}
+
+.insights-margin-value--neutral {
+  color: var(--navy);
+}
+
+.insights-margin-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(47, 54, 85, 0.08);
+  overflow: hidden;
+}
+
+.insights-margin-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.insights-margin-fill[data-tone="positive"] {
+  background: linear-gradient(90deg, #4ab779, #2a9d5c);
+}
+
+.insights-margin-fill[data-tone="negative"] {
+  background: linear-gradient(90deg, #e06050, #c64031);
+}
+
+.insights-margin-fill[data-tone="neutral"] {
+  background: var(--navy);
+}
+
+.insights-margin-context {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Revenue vs Expenses split bar */
+.insights-split-bar {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.insights-split-revenue {
+  background: linear-gradient(90deg, #4ab779, #2a9d5c);
+  border-radius: 999px 0 0 999px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 4px;
+}
+
+.insights-split-expense {
+  background: linear-gradient(90deg, #e06050, #c64031);
+  border-radius: 0 999px 999px 0;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 4px;
+}
+
+.insights-split-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.insights-legend-item {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.insights-legend-item--revenue {
+  color: var(--positive);
+}
+
+.insights-legend-item--expense {
+  color: var(--negative);
+}
+
+/* Stat blocks */
+.insights-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.insights-stat {
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(47, 54, 85, 0.04);
+  border: 1px solid var(--line-soft);
+}
+
+.insights-stat strong {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-sora), sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--navy);
+}
+
+/* Highlight cards (top seller / biggest expense) */
+.insights-highlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.insights-highlight {
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--line-soft);
+  display: grid;
+  gap: 4px;
+}
+
+.insights-highlight strong {
+  display: block;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.insights-highlight small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.insights-highlight--positive {
+  background: linear-gradient(180deg, rgba(48, 138, 95, 0.08), rgba(255, 255, 255, 0.6));
+}
+
+.insights-highlight--negative {
+  background: linear-gradient(180deg, rgba(198, 64, 49, 0.08), rgba(255, 255, 255, 0.6));
+}
+
+@media (max-width: 420px) {
+  .insights-highlights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .insights-margin-value {
+    font-size: 1.05rem;
+  }
+}

@@ -6,6 +6,7 @@ import BottomNav from "@/components/dashboard/bottom-nav";
 import DateBar from "@/components/dashboard/date-bar";
 import ExpenseForm from "@/components/dashboard/expense-form";
 import ExpenseList from "@/components/dashboard/expense-list";
+import InsightsPanel from "@/components/dashboard/insights-panel";
 import SalesForm from "@/components/dashboard/sales-form";
 import SalesList from "@/components/dashboard/sales-list";
 import SnapshotCard from "@/components/dashboard/snapshot-card";
@@ -69,7 +70,6 @@ export default function DashboardApp({ displayName }) {
   const expenseUploadInputRef = useRef(null);
 
   const [activeView, setActiveView] = useState("dashboard");
-  const [activityView, setActivityView] = useState("sales");
   const [dateFilter, setDateFilter] = useState(createTodayFilter());
   const [salesData, setSalesData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
@@ -90,7 +90,6 @@ export default function DashboardApp({ displayName }) {
     [expenseData, dateFilter]
   );
   const metrics = useMemo(() => computeMetrics(filteredSales, filteredExpenses), [filteredSales, filteredExpenses]);
-  const activeLogView = activeView === "dashboard" ? activityView : activeView;
   const trackerSubtitle =
     activeView === "expenses" ? "Expenses" : activeView === "sales" ? "Sales" : "Sales Tracker";
 
@@ -99,10 +98,6 @@ export default function DashboardApp({ displayName }) {
 
     if (hash === "dashboard" || hash === "sales" || hash === "expenses") {
       setActiveView(hash);
-
-      if (hash === "sales" || hash === "expenses") {
-        setActivityView(hash);
-      }
     }
   }, []);
 
@@ -336,10 +331,6 @@ export default function DashboardApp({ displayName }) {
 
   function handleViewChange(nextView) {
     setActiveView(nextView);
-
-    if (nextView === "sales" || nextView === "expenses") {
-      setActivityView(nextView);
-    }
   }
 
   const saleTotalPreview =
@@ -389,64 +380,48 @@ export default function DashboardApp({ displayName }) {
         </div>
       ) : null}
 
-      <section className="tracker-screen">
-        <div className="tracker-section-intro">
-          <div>
-            <h2>{activeView === "dashboard" ? "Today's Activity" : activeView === "sales" ? "Sales" : "Expenses"}</h2>
-            {activeView === "dashboard" ? null : (
+      {activeView === "dashboard" ? (
+        <InsightsPanel metrics={metrics} isLoading={isLoading} />
+      ) : (
+        <section className="tracker-screen">
+          <div className="tracker-section-intro">
+            <div>
+              <h2>{activeView === "sales" ? "Sales" : "Expenses"}</h2>
               <p>
                 {`Showing ${activeView} for ${
                   dateFilter.type === "range" ? `${dateBounds.from} to ${dateBounds.to}` : normalizeDate(dateFilter.value)
                 }.`}
               </p>
-            )}
-          </div>
-          {activeView === "dashboard" ? (
-            <div className="tracker-toggle" aria-label="Activity type">
-              <button
-                className={`tracker-toggle-button ${activityView === "sales" ? "is-active" : ""}`}
-                type="button"
-                onClick={() => setActivityView("sales")}
-              >
-                Sales
-              </button>
-              <button
-                className={`tracker-toggle-button ${activityView === "expenses" ? "is-active" : ""}`}
-                type="button"
-                onClick={() => setActivityView("expenses")}
-              >
-                Expenses
-              </button>
             </div>
-          ) : null}
-        </div>
+          </div>
 
-        {activeLogView === "sales" ? (
-          <SalesList
-            title={activeView === "dashboard" ? "Sales log" : "Sales list"}
-            description="Item name, quantity, amount, and time."
-            sales={filteredSales}
-            isLoading={isLoading}
-            pendingDelete={pendingDelete}
-            busyAction={busyAction}
-            onRequestDelete={setPendingDelete}
-            onCancelDelete={() => setPendingDelete(null)}
-            onConfirmDelete={handleDelete}
-          />
-        ) : (
-          <ExpenseList
-            title={activeView === "dashboard" ? "Expense log" : "Expense list"}
-            description="Expense name, amount, category, and time."
-            expenses={filteredExpenses}
-            isLoading={isLoading}
-            pendingDelete={pendingDelete}
-            busyAction={busyAction}
-            onRequestDelete={setPendingDelete}
-            onCancelDelete={() => setPendingDelete(null)}
-            onConfirmDelete={handleDelete}
-          />
-        )}
-      </section>
+          {activeView === "sales" ? (
+            <SalesList
+              title="Sales list"
+              description="Item name, quantity, amount, and time."
+              sales={filteredSales}
+              isLoading={isLoading}
+              pendingDelete={pendingDelete}
+              busyAction={busyAction}
+              onRequestDelete={setPendingDelete}
+              onCancelDelete={() => setPendingDelete(null)}
+              onConfirmDelete={handleDelete}
+            />
+          ) : (
+            <ExpenseList
+              title="Expense list"
+              description="Expense name, amount, category, and time."
+              expenses={filteredExpenses}
+              isLoading={isLoading}
+              pendingDelete={pendingDelete}
+              busyAction={busyAction}
+              onRequestDelete={setPendingDelete}
+              onCancelDelete={() => setPendingDelete(null)}
+              onConfirmDelete={handleDelete}
+            />
+          )}
+        </section>
+      )}
 
       <input
         ref={expenseUploadInputRef}
