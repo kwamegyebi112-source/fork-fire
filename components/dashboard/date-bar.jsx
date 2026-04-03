@@ -39,6 +39,15 @@ export default function DateBar({
   const [draftFrom, setDraftFrom] = useState(dateFilter.from || normalizeDate(new Date()));
   const [draftTo, setDraftTo] = useState(dateFilter.to || normalizeDate(new Date()));
 
+  useEffect(() => {
+    if (isCustomOpen) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [isCustomOpen]);
+
   const label = useMemo(() => {
     const { from, to } = getDateBounds(dateFilter);
 
@@ -57,8 +66,11 @@ export default function DateBar({
     setDraftTo(to);
   }, [dateFilter]);
 
+  const isRangeInvalid = draftType === "range" && draftFrom > draftTo;
+
   function handleApply() {
     if (draftType === "range") {
+      if (isRangeInvalid) return;
       onApplyFilter(createRangeDateFilter(draftFrom, draftTo));
     } else {
       onApplyFilter(createSingleDateFilter(draftSingle));
@@ -121,7 +133,7 @@ export default function DateBar({
                 <h2>Custom date</h2>
                 <p>Switch between a single day and a date range.</p>
               </div>
-              <button className="tracker-modal-close" type="button" onClick={() => setIsCustomOpen(false)}>
+              <button className="tracker-modal-close" type="button" onClick={() => setIsCustomOpen(false)} aria-label="Close dialog">
                 Close
               </button>
             </div>
@@ -161,11 +173,15 @@ export default function DateBar({
               </label>
             )}
 
+            {isRangeInvalid ? (
+              <p className="tracker-field-error">&quot;From&quot; date must be before &quot;To&quot; date.</p>
+            ) : null}
+
             <div className="tracker-modal-actions">
               <button className="tracker-secondary-button" type="button" onClick={() => setIsCustomOpen(false)}>
                 Cancel
               </button>
-              <button className="tracker-primary-button" type="button" onClick={handleApply}>
+              <button className="tracker-primary-button" type="button" onClick={handleApply} disabled={isRangeInvalid}>
                 Apply
               </button>
             </div>

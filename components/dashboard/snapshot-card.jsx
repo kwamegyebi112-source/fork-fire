@@ -68,8 +68,6 @@ export default function SnapshotCard({ metrics, dateFilter, isLoading, view }) {
         <span className="tracker-snapshot-date">{summaryLabel}</span>
       </div>
 
-      <p className="tracker-snapshot-subcopy">Revenue: {formatCurrency(metrics.revenue)}</p>
-
       <div className="tracker-snapshot-foot">
         <div>
           <small>Revenue</small>

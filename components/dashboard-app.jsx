@@ -160,6 +160,10 @@ export default function DashboardApp({ displayName }) {
     }, 3000);
   }
 
+  function dismissToast(id) {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  }
+
   function handleSaleItemChange(itemId) {
     const selectedMenu = menuItems.find((item) => item.id === itemId) || menuItems[0];
 
@@ -369,7 +373,7 @@ export default function DashboardApp({ displayName }) {
       ) : null}
 
       {activeView === "expenses" ? (
-        <div className="tracker-utility-row">
+        <div className="tracker-utility-row tracker-utility-row--wide">
           <button className="tracker-utility-button tracker-utility-button--primary" type="button" onClick={() => setIsExpenseComposerOpen(true)}>
             Add expense
           </button>
@@ -453,7 +457,7 @@ export default function DashboardApp({ displayName }) {
       />
 
       <BottomNav activeView={activeView} onChange={handleViewChange} />
-      <ToastViewport toasts={toasts} />
+      <ToastViewport toasts={toasts} onDismiss={dismissToast} />
 
       {isSaleComposerOpen ? (
         <ModalShell title="Add sale" subtitle={`Save to ${entryDate}`} onClose={() => setIsSaleComposerOpen(false)}>
@@ -490,6 +494,11 @@ export default function DashboardApp({ displayName }) {
 }
 
 function ModalShell({ title, subtitle, onClose, children }) {
+  useEffect(() => {
+    document.body.classList.add("modal-open");
+    return () => document.body.classList.remove("modal-open");
+  }, []);
+
   return (
     <div className="tracker-modal-backdrop" role="presentation" onClick={onClose}>
       <div
@@ -504,7 +513,7 @@ function ModalShell({ title, subtitle, onClose, children }) {
             <h2>{title}</h2>
             <p>{subtitle}</p>
           </div>
-          <button className="tracker-modal-close" type="button" onClick={onClose}>
+          <button className="tracker-modal-close" type="button" onClick={onClose} aria-label="Close dialog">
             Close
           </button>
         </div>
@@ -514,7 +523,7 @@ function ModalShell({ title, subtitle, onClose, children }) {
   );
 }
 
-function ToastViewport({ toasts }) {
+function ToastViewport({ toasts, onDismiss }) {
   return (
     <div className="tracker-toast-stack" aria-live="polite">
       {toasts.map((toast) => (
@@ -523,6 +532,14 @@ function ToastViewport({ toasts }) {
             {toast.tone === "error" ? "!" : toast.tone === "neutral" ? "i" : "+"}
           </span>
           <span>{toast.message}</span>
+          <button
+            className="tracker-toast-dismiss"
+            type="button"
+            aria-label="Dismiss notification"
+            onClick={() => onDismiss(toast.id)}
+          >
+            &times;
+          </button>
         </div>
       ))}
     </div>

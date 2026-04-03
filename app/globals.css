@@ -1,22 +1,28 @@
 :root {
-  --navy: #0c1a42;
-  --navy-soft: #1a2e72;
-  --orange: #e85420;
+  --navy: #2f3655;
+  --navy-soft: #454c6d;
+  --orange: #ff6328;
+  --orange-deep: #ea4d2a;
   --orange-bright: #f06535;
   --gold: #f5c200;
+  --cream: #f8f2ed;
+  --paper: rgba(255, 250, 246, 0.94);
+  --paper-strong: #fffdfb;
   --bg-base: #f5efe6;
   --surface: rgba(255, 252, 248, 0.96);
   --surface-strong: rgba(255, 253, 250, 0.99);
   --ink: #172446;
-  --muted: #6d7691;
+  --muted: #8a8698;
   --line: rgba(12, 26, 66, 0.1);
   --line-mid: rgba(12, 26, 66, 0.18);
   --line-strong: rgba(12, 26, 66, 0.28);
-  --positive: #167957;
-  --negative: #b94739;
+  --line-soft: rgba(47, 54, 85, 0.08);
+  --positive: #308a5f;
+  --negative: #c64031;
   --positive-bg: rgba(22, 121, 87, 0.12);
   --negative-bg: rgba(185, 71, 57, 0.12);
-  --shadow-soft: 0 10px 24px rgba(12, 26, 66, 0.07);
+  --shadow-soft: 0 16px 40px rgba(88, 68, 68, 0.12);
+  --shadow-strong: 0 24px 56px rgba(88, 68, 68, 0.16);
   --shadow-card: 0 18px 40px rgba(12, 26, 66, 0.1);
   --shadow-orange: 0 8px 24px rgba(232, 84, 32, 0.22);
   --radius-xl: 24px;
@@ -1468,23 +1474,6 @@ a {
   }
 }
 
-:root {
-  --navy: #2f3655;
-  --navy-soft: #454c6d;
-  --orange: #ff6328;
-  --orange-deep: #ea4d2a;
-  --cream: #f8f2ed;
-  --paper: rgba(255, 250, 246, 0.94);
-  --paper-strong: #fffdfb;
-  --line-soft: rgba(47, 54, 85, 0.08);
-  --line-strong: rgba(47, 54, 85, 0.14);
-  --muted: #8a8698;
-  --positive: #308a5f;
-  --negative: #c64031;
-  --shadow-soft: 0 16px 40px rgba(88, 68, 68, 0.12);
-  --shadow-strong: 0 24px 56px rgba(88, 68, 68, 0.16);
-}
-
 .tracker-app-shell {
   width: min(460px, calc(100% - 24px));
   padding: 22px 0 calc(96px + env(safe-area-inset-bottom, 0px));
@@ -1823,6 +1812,10 @@ a {
   gap: 8px;
   padding: 8px;
   border-radius: 20px;
+}
+
+.tracker-utility-row--wide {
+  grid-template-columns: 1.3fr 1fr 0.8fr 1fr;
 }
 
 .tracker-utility-button {
@@ -2287,6 +2280,10 @@ a {
     padding-inline: 10px;
   }
 
+  .tracker-utility-row--wide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .tracker-snapshot-head h2 {
     font-size: 1.62rem;
   }
@@ -2307,4 +2304,159 @@ a {
   .tracker-bottom-nav-item {
     font-size: 0.7rem;
   }
+}
+
+/* --- Field validation error --- */
+.tracker-field-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--negative-bg);
+  color: var(--negative);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tracker-primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* --- Fix 5: Toast stack above bottom nav --- */
+.tracker-toast-stack {
+  bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+}
+
+/* --- Fix 6: Body scroll lock when modal open --- */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* --- Fix 7: Loading skeleton --- */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.tracker-skeleton {
+  display: grid;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.tracker-skeleton-row {
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(
+    90deg,
+    rgba(47, 54, 85, 0.06) 25%,
+    rgba(47, 54, 85, 0.12) 50%,
+    rgba(47, 54, 85, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* --- Fix 8: Log row hover --- */
+.tracker-log-row:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--line-strong);
+}
+
+/* --- Fix 9: Toast entry animation + dismiss --- */
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tracker-toast {
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+.tracker-toast-dismiss {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(47, 54, 85, 0.08);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.tracker-toast-dismiss:hover {
+  background: rgba(47, 54, 85, 0.16);
+  color: var(--navy);
+}
+
+/* --- Fix 10: Focus-visible styles --- */
+*:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.tracker-primary-button:focus-visible,
+.tracker-datebar-chip:focus-visible,
+.tracker-toggle-button:focus-visible,
+.tracker-segment:focus-visible {
+  outline-offset: 2px;
+  outline: 2px solid var(--orange);
+  box-shadow: 0 0 0 4px rgba(255, 99, 40, 0.15);
+}
+
+.tracker-modal-field input:focus-visible,
+.tracker-field input:focus-visible,
+.tracker-field select:focus-visible {
+  outline: none;
+  border-color: rgba(255, 99, 40, 0.5);
+  box-shadow: 0 0 0 4px rgba(255, 99, 40, 0.12);
+}
+
+/* --- Fix 11: Delete confirmation row highlight --- */
+.tracker-log-row.is-pending-delete {
+  border-color: rgba(198, 64, 49, 0.25);
+  background: rgba(198, 64, 49, 0.06);
+}
+
+/* --- Fix 13: Sticky topbar --- */
+.tracker-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  padding: 10px 0;
+  background:
+    linear-gradient(180deg, var(--bg-base) 60%, transparent 100%);
+}
+
+.tracker-datebar {
+  top: 72px;
+}
+
+/* --- Fix 12: Empty state icon --- */
+.tracker-empty-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 4px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+/* --- Fix 16: Delete icon button --- */
+.tracker-icon-button--small svg {
+  display: block;
 }

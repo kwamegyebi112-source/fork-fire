@@ -3,6 +3,25 @@ const entryTime = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+const deleteIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M8 6V4.5C8 3.67 8.67 3 9.5 3H14.5C15.33 3 16 3.67 16 4.5V6M3 6H21M5 6V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V6M10 10V17M14 10V17"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const emptyIcon = (
+  <svg className="tracker-empty-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <rect x="8" y="10" width="32" height="28" rx="5" stroke="currentColor" strokeWidth="2" />
+    <path d="M16 20H32M16 28H26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 function formatCurrency(value) {
   return `GHS ${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
@@ -40,9 +59,10 @@ export default function SalesList({
       </div>
 
       {isLoading ? (
-        <div className="tracker-empty">
-          <strong>Loading sales</strong>
-          <p>Fetching the latest sales for this date filter.</p>
+        <div className="tracker-skeleton">
+          <div className="tracker-skeleton-row" />
+          <div className="tracker-skeleton-row" />
+          <div className="tracker-skeleton-row" />
         </div>
       ) : sales.length ? (
         <div className="tracker-log-list">
@@ -50,7 +70,7 @@ export default function SalesList({
             const isPending = pendingDelete?.type === "sales" && pendingDelete.id === sale.id;
 
             return (
-              <article className="tracker-log-row" key={sale.id}>
+              <article className={`tracker-log-row${isPending ? " is-pending-delete" : ""}`} key={sale.id}>
                 <div className="tracker-log-main">
                   <strong>{sale.item_name}</strong>
                   <small>
@@ -80,7 +100,7 @@ export default function SalesList({
                       aria-label="Delete sale"
                       onClick={() => onRequestDelete({ type: "sales", id: sale.id })}
                     >
-                      x
+                      {deleteIcon}
                     </button>
                   )}
                 </div>
@@ -90,6 +110,7 @@ export default function SalesList({
         </div>
       ) : (
         <div className="tracker-empty">
+          {emptyIcon}
           <strong>No sales yet</strong>
           <p>Sales entered for this date will appear here.</p>
         </div>
