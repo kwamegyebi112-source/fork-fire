@@ -339,7 +339,7 @@ export default function DashboardApp({ userEmail, displayName }) {
           <div>
             <p className="eyebrow">Fork N' Fire</p>
             <h1 className="app-title">Sales Tracker</h1>
-            <p className="app-subtitle">Daily sales and expenses in one place.</p>
+            <p className="app-subtitle">Daily sales and expenses.</p>
           </div>
         </div>
 

@@ -37,8 +37,7 @@ export default function LoginForm() {
 
   return (
     <article className="auth-card auth-card-compact">
-      <h2 className="auth-card-title">Owner Login</h2>
-      <p className="auth-card-copy">Your private tracker — no one else can see this data.</p>
+      <h2 className="auth-card-title">Login</h2>
 
       <form className="auth-form" onSubmit={handleSubmit}>
         <label className="field">
@@ -90,7 +89,7 @@ export default function LoginForm() {
               <span>Signing in...</span>
             </>
           ) : (
-            "Sign in →"
+            "Sign in ->"
           )}
         </button>
       </form>

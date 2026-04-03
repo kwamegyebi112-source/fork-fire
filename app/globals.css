@@ -728,14 +728,15 @@ a {
   top: max(10px, env(safe-area-inset-top, 0px));
   z-index: 10;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   padding: 8px 10px;
 }
 
 .tab-chip {
-  flex: 1 1 110px;
+  flex: 1 1 0;
   min-height: 38px;
+  min-width: 0;
   padding: 0 12px;
   border: 1px solid transparent;
   background: transparent;
@@ -744,6 +745,8 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: 0.84rem;
+  white-space: nowrap;
 }
 
 .tab-chip.is-active {
@@ -812,6 +815,10 @@ a {
 .stats-grid {
   display: grid;
   gap: 10px;
+}
+
+.stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .highlight-panel,
@@ -1401,6 +1408,28 @@ a {
   .stats-card,
   .content-card {
     padding: 12px;
+  }
+
+  .tab-strip {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .tab-chip {
+    min-height: 36px;
+    padding: 0 8px;
+    gap: 4px;
+    font-size: 0.76rem;
+  }
+
+  .tab-count {
+    min-width: 14px;
+    height: 14px;
+    font-size: 0.58rem;
+  }
+
+  .stats-grid {
+    gap: 8px;
   }
 
   .auth-brand-name {
