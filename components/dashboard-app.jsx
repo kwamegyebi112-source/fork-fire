@@ -390,11 +390,13 @@ export default function DashboardApp({ displayName }) {
         <div className="tracker-section-intro">
           <div>
             <h2>{activeView === "dashboard" ? "Today's Activity" : activeView === "sales" ? "Sales" : "Expenses"}</h2>
-            <p>
-              {activeView === "dashboard"
-                ? "Fast access to the daily log without repeating the snapshot totals."
-                : `Showing ${activeView} for ${dateFilter.type === "range" ? `${dateBounds.from} to ${dateBounds.to}` : normalizeDate(dateFilter.value)}.`}
-            </p>
+            {activeView === "dashboard" ? null : (
+              <p>
+                {`Showing ${activeView} for ${
+                  dateFilter.type === "range" ? `${dateBounds.from} to ${dateBounds.to}` : normalizeDate(dateFilter.value)
+                }.`}
+              </p>
+            )}
           </div>
           {activeView === "dashboard" ? (
             <div className="tracker-toggle" aria-label="Activity type">
