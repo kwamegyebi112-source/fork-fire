@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -71,6 +71,7 @@ const trashIcon = (
 export default function DashboardApp({ userEmail, displayName }) {
   const router = useRouter();
   const supabase = createClient();
+  const expenseUploadInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [reportDate, setReportDate] = useState(todayString());
   const [salesWindow, setSalesWindow] = useState([]);
@@ -252,7 +253,58 @@ export default function DashboardApp({ userEmail, displayName }) {
     pushToast(`Expense saved for ${formatCurrency(amount)}.`, "success");
     setExpenseForm(emptyExpenseForm);
     await loadWindow(reportDate);
-    setActiveTab("dashboard");
+  }
+
+  function downloadExpenseTemplate() {
+    const rows = [
+      ["Date", "Category", "Amount (GHS)", "Notes"],
+      [reportDate, "", "", ""],
+    ];
+
+    downloadCSV("fork-n-fire-expense-template.csv", rows);
+    pushToast("Expense template downloaded.", "neutral");
+  }
+
+  function triggerExpenseUpload() {
+    expenseUploadInputRef.current?.click();
+  }
+
+  async function handleExpenseFileChange(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setBusyAction("expense-upload");
+
+    try {
+      const text = await file.text();
+      const parsedRows = parseCSVRows(text);
+      const uploadRows = buildExpenseUploadRows(parsedRows, reportDate);
+
+      if (!uploadRows.length) {
+        pushToast("No valid expense rows found in the file.", "error");
+        return;
+      }
+
+      const { error } = await supabase.from("expenses").insert(uploadRows);
+
+      if (error) {
+        pushToast(error.message, "error");
+        return;
+      }
+
+      pushToast(`${uploadRows.length} expense${uploadRows.length === 1 ? "" : "s"} imported.`, "success");
+      await loadWindow(reportDate);
+    } catch (error) {
+      pushToast(error instanceof Error ? error.message : "Could not import that file.", "error");
+    } finally {
+      setBusyAction("");
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
   }
 
   async function confirmDelete(type, id) {
@@ -753,6 +805,22 @@ export default function DashboardApp({ userEmail, displayName }) {
                   <strong>{longDate.format(parseDateValue(reportDate))}</strong>
                 </div>
 
+                <div className="import-tools">
+                  <button className="ghost-button" type="button" onClick={downloadExpenseTemplate}>
+                    Download template
+                  </button>
+                  <button className="ghost-button" type="button" onClick={triggerExpenseUpload} disabled={busyAction === "expense-upload"}>
+                    {busyAction === "expense-upload" ? "Importing..." : "Upload CSV"}
+                  </button>
+                  <input
+                    ref={expenseUploadInputRef}
+                    className="sr-only-input"
+                    type="file"
+                    accept=".csv,text/csv"
+                    onChange={handleExpenseFileChange}
+                  />
+                </div>
+
                 <button className="primary-button alt-button" type="submit" disabled={busyAction === "expense"}>
                   {busyAction === "expense" ? "Saving..." : "Save expense"}
                 </button>
@@ -1031,4 +1099,114 @@ function downloadCSV(filename, rows) {
   anchor.download = filename;
   anchor.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function parseCSVRows(text) {
+  const rows = [];
+  let current = "";
+  let row = [];
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const nextChar = text[index + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && nextChar === "\n") {
+        index += 1;
+      }
+
+      row.push(current.trim());
+      rows.push(row);
+      row = [];
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (current.length || row.length) {
+    row.push(current.trim());
+    rows.push(row);
+  }
+
+  return rows.filter((entry) => entry.some((cell) => cell.length));
+}
+
+function buildExpenseUploadRows(rows, fallbackDate) {
+  if (!rows.length) {
+    return [];
+  }
+
+  const [headerRow, ...dataRows] = rows;
+  const headerMap = headerRow.reduce((accumulator, value, index) => {
+    accumulator[normalizeHeader(value)] = index;
+    return accumulator;
+  }, {});
+
+  const categoryIndex = headerMap.category;
+  const amountIndex = headerMap.amount;
+  const dateIndex = headerMap.date;
+  const notesIndex = headerMap.notes;
+
+  if (categoryIndex === undefined || amountIndex === undefined) {
+    throw new Error("CSV must include Category and Amount columns.");
+  }
+
+  return dataRows
+    .map((row, index) => {
+      const category = (row[categoryIndex] || "").trim();
+      const rawAmount = (row[amountIndex] || "").trim();
+      const rawDate = dateIndex === undefined ? "" : (row[dateIndex] || "").trim();
+      const notes = notesIndex === undefined ? "" : (row[notesIndex] || "").trim();
+
+      if (!category && !rawAmount && !rawDate && !notes) {
+        return null;
+      }
+
+      const amount = Number.parseFloat(rawAmount);
+
+      if (!category) {
+        throw new Error(`Row ${index + 2}: Category is required.`);
+      }
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error(`Row ${index + 2}: Amount must be greater than 0.`);
+      }
+
+      const spentOn = rawDate || fallbackDate;
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(spentOn)) {
+        throw new Error(`Row ${index + 2}: Date must use YYYY-MM-DD.`);
+      }
+
+      return {
+        category,
+        amount,
+        spent_on: spentOn,
+        notes,
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeHeader(value) {
+  return value.toLowerCase().replace(/\s*\(.*?\)\s*/g, "").trim();
 }
