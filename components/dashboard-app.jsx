@@ -60,12 +60,15 @@ function saveMenuItemsLocal(items) {
 const emptyExpenseForm = { name: "", amount: "" };
 
 const UNDO_TIMEOUT = 5000;
+const SALES_SELECT_FIELDS = "id, item_id, item_name, quantity, unit_price, total, notes, sold_on, created_at";
+const EXPENSES_SELECT_FIELDS = "id, category, amount, notes, spent_on, created_at";
 
 export default function DashboardApp({ displayName }) {
   const router = useRouter();
   const supabase = createClient();
   const expenseUploadInputRef = useRef(null);
   const undoTimerRef = useRef(null);
+  const loadRequestRef = useRef(0);
 
   const [activeView, setActiveView] = useState("dashboard");
   const [prevView, setPrevView] = useState("dashboard");
@@ -144,6 +147,7 @@ export default function DashboardApp({ displayName }) {
   }
 
   async function loadRecords(filter) {
+    const requestId = ++loadRequestRef.current;
     const { from, to } = getDateBounds(filter);
     const dayAfterTo = nextDay(to);
     setIsLoading(true);
@@ -152,14 +156,14 @@ export default function DashboardApp({ displayName }) {
       const [salesResponse, expensesResponse] = await Promise.all([
         supabase
           .from("sales")
-          .select("id, item_id, item_name, quantity, unit_price, total, notes, sold_on, created_at")
+          .select(SALES_SELECT_FIELDS)
           .gte("sold_on", from)
           .lt("sold_on", dayAfterTo)
           .order("sold_on", { ascending: false })
           .order("created_at", { ascending: false }),
         supabase
           .from("expenses")
-          .select("id, category, amount, notes, spent_on, created_at")
+          .select(EXPENSES_SELECT_FIELDS)
           .gte("spent_on", from)
           .lt("spent_on", dayAfterTo)
           .order("spent_on", { ascending: false })
@@ -172,12 +176,20 @@ export default function DashboardApp({ displayName }) {
         );
       }
 
+      if (requestId !== loadRequestRef.current) {
+        return;
+      }
+
       setSalesData(normalizeSalesRows(salesResponse.data));
       setExpenseData(normalizeExpenseRows(expensesResponse.data));
     } catch (error) {
-      pushToast(error instanceof Error ? error.message : "Could not load records.", "error");
+      if (requestId === loadRequestRef.current) {
+        pushToast(error instanceof Error ? error.message : "Could not load records.", "error");
+      }
     } finally {
-      setIsLoading(false);
+      if (requestId === loadRequestRef.current) {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -255,42 +267,47 @@ export default function DashboardApp({ displayName }) {
         .from("sales")
         .update(updateFields)
         .eq("id", editingSale.id)
-        .select();
+        .select(SALES_SELECT_FIELDS)
+        .maybeSingle();
       setBusyAction("");
 
       if (updateError) {
         pushToast(updateError.message, "error");
         return;
       }
-      if (!data?.length) {
+      if (!data) {
         pushToast("Update failed — no rows changed. Check permissions.", "error");
         return;
       }
 
-      const updated = normalizeSalesRows(data)[0];
+      const updated = normalizeSalesRows([data])[0];
       setSalesData((current) => current.map((s) => (s.id === editingSale.id ? updated : s)));
       closeSaleComposer();
       pushToast("Sale updated.", "success");
     } else {
-      const { data, error: insertError } = await supabase.from("sales").insert(payload).select();
+      const { data, error: insertError } = await supabase
+        .from("sales")
+        .insert(payload)
+        .select(SALES_SELECT_FIELDS)
+        .maybeSingle();
       setBusyAction("");
 
       if (insertError) {
         pushToast(insertError.message, "error");
         return;
       }
-      if (!data?.length) {
+      if (!data) {
         pushToast("Sale was not saved — check database permissions.", "error");
         return;
       }
 
-      const newRow = normalizeSalesRows(data)[0];
+      const newRow = normalizeSalesRows([data])[0];
       setSalesData((current) => [newRow, ...current]);
       closeSaleComposer();
       pushToast("Sale saved.", "success");
     }
 
-    loadRecords(dateFilter);
+    await loadRecords(dateFilter);
   }
 
   // --- Expense form handlers ---
@@ -336,42 +353,47 @@ export default function DashboardApp({ displayName }) {
         .from("expenses")
         .update(updateFields)
         .eq("id", editingExpense.id)
-        .select();
+        .select(EXPENSES_SELECT_FIELDS)
+        .maybeSingle();
       setBusyAction("");
 
       if (updateError) {
         pushToast(updateError.message, "error");
         return;
       }
-      if (!data?.length) {
+      if (!data) {
         pushToast("Update failed — no rows changed. Check permissions.", "error");
         return;
       }
 
-      const updated = normalizeExpenseRows(data)[0];
+      const updated = normalizeExpenseRows([data])[0];
       setExpenseData((current) => current.map((e) => (e.id === editingExpense.id ? updated : e)));
       closeExpenseComposer();
       pushToast("Expense updated.", "success");
     } else {
-      const { data, error: insertError } = await supabase.from("expenses").insert(payload).select();
+      const { data, error: insertError } = await supabase
+        .from("expenses")
+        .insert(payload)
+        .select(EXPENSES_SELECT_FIELDS)
+        .maybeSingle();
       setBusyAction("");
 
       if (insertError) {
         pushToast(insertError.message, "error");
         return;
       }
-      if (!data?.length) {
+      if (!data) {
         pushToast("Expense was not saved — check database permissions.", "error");
         return;
       }
 
-      const newRow = normalizeExpenseRows(data)[0];
+      const newRow = normalizeExpenseRows([data])[0];
       setExpenseData((current) => [newRow, ...current]);
       closeExpenseComposer();
       pushToast("Expense saved.", "success");
     }
 
-    loadRecords(dateFilter);
+    await loadRecords(dateFilter);
   }
 
   // --- Expense upload ---
@@ -392,7 +414,7 @@ export default function DashboardApp({ displayName }) {
         return;
       }
 
-      const { data, error } = await supabase.from("expenses").insert(payload).select();
+      const { data, error } = await supabase.from("expenses").insert(payload).select(EXPENSES_SELECT_FIELDS);
 
       if (error) {
         pushToast(error.message, "error");
@@ -406,7 +428,7 @@ export default function DashboardApp({ displayName }) {
       const newRows = normalizeExpenseRows(data);
       setExpenseData((current) => [...newRows, ...current]);
       pushToast(`${data.length} expense${data.length === 1 ? "" : "s"} imported.`, "success");
-      loadRecords(dateFilter);
+      await loadRecords(dateFilter);
     } catch (error) {
       pushToast(error instanceof Error ? error.message : "Could not import the file.", "error");
     } finally {
