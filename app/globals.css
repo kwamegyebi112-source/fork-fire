@@ -534,7 +534,7 @@ a {
 .spotlight-card,
 .stats-card,
 .content-card {
-  padding: 15px;
+  padding: 14px;
 }
 
 .app-header {
@@ -568,7 +568,7 @@ a {
 
 .user-pill {
   max-width: 100%;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 16px;
   background: linear-gradient(155deg, rgba(12, 26, 66, 0.95), rgba(26, 46, 114, 0.92));
   color: #fff;
@@ -592,23 +592,25 @@ a {
 
 .user-pill strong {
   margin-top: 7px;
+  font-size: 0.92rem;
 }
 
 .user-pill small {
   margin-top: 4px;
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.72);
 }
 
 .date-summary-card {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   align-items: start;
 }
 
 .date-nav {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
   align-items: start;
 }
 
@@ -622,7 +624,7 @@ a {
   isolation: isolate;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 16px;
   color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
@@ -673,9 +675,9 @@ a {
 .stat-block span {
   display: block;
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -683,7 +685,7 @@ a {
   display: block;
   margin-top: 8px;
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(1.95rem, 7vw, 3rem);
+  font-size: clamp(1.75rem, 6vw, 2.55rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.92;
@@ -691,17 +693,18 @@ a {
 
 .hero-date {
   margin-top: 6px;
+  font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.82);
 }
 
 .status-pill {
   display: inline-flex;
   width: fit-content;
-  margin-top: 10px;
-  padding: 7px 10px;
+  margin-top: 8px;
+  padding: 6px 9px;
   border-radius: 999px;
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
 }
 
@@ -726,13 +729,13 @@ a {
   z-index: 10;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 8px 10px;
 }
 
 .tab-chip {
   flex: 1 1 110px;
-  min-height: 40px;
+  min-height: 38px;
   padding: 0 12px;
   border: 1px solid transparent;
   background: transparent;
@@ -756,14 +759,14 @@ a {
 }
 
 .tab-count {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 800;
   background: rgba(255, 255, 255, 0.22);
 }
@@ -777,21 +780,21 @@ a {
 .dashboard-panels,
 .mobile-grid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .section-head {
   display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
 .section-meta {
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
 
 .app-subtitle {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .spotlight-card {
@@ -808,7 +811,7 @@ a {
 .spotlight-grid,
 .stats-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .highlight-panel,
@@ -832,7 +835,7 @@ a {
 }
 
 .highlight-panel {
-  padding: 14px;
+  padding: 12px;
 }
 
 .highlight-panel:hover,
@@ -844,9 +847,9 @@ a {
 
 .highlight-value {
   display: block;
-  margin-top: 6px;
+  margin-top: 5px;
   font-family: var(--font-sora), sans-serif;
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: -0.035em;
   color: var(--navy);
@@ -858,8 +861,8 @@ a {
 
 .stat-block {
   position: relative;
-  min-height: 104px;
-  padding: 16px 14px 14px;
+  min-height: 92px;
+  padding: 14px 12px 12px;
   overflow: hidden;
 }
 
@@ -880,9 +883,9 @@ a {
 
 .stat-block strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(1.35rem, 5vw, 1.9rem);
+  font-size: clamp(1.2rem, 4.2vw, 1.65rem);
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 0.96;
@@ -891,6 +894,7 @@ a {
 .stat-block small {
   display: block;
   margin-top: 4px;
+  font-size: 0.76rem;
   color: var(--muted);
 }
 
@@ -934,14 +938,14 @@ a {
 .menu-list,
 .mix-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .trend-grid {
   grid-auto-flow: column;
   grid-auto-columns: minmax(54px, 1fr);
   align-items: end;
-  min-height: 190px;
+  min-height: 170px;
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
@@ -955,7 +959,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .trend-day.is-current .trend-label {
@@ -965,7 +969,7 @@ a {
 .trend-value,
 .trend-label {
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -980,7 +984,7 @@ a {
 .trend-frame {
   position: relative;
   width: 100%;
-  height: 124px;
+  height: 108px;
 }
 
 .trend-frame::before {
@@ -999,10 +1003,10 @@ a {
 .trend-bar {
   position: absolute;
   left: 50%;
-  width: min(30px, 72%);
+  width: min(24px, 68%);
   height: var(--bar-height);
   transform: translateX(-50%) scaleY(0);
-  border-radius: 14px;
+  border-radius: 10px;
   animation: bar-rise 0.52s cubic-bezier(0.28, 1.2, 0.4, 1) forwards;
 }
 
@@ -1025,7 +1029,7 @@ a {
 }
 
 .mix-item {
-  padding: 14px;
+  padding: 12px;
 }
 
 .mix-item:hover {
@@ -1037,12 +1041,12 @@ a {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .mix-row span {
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
 
 .mix-row em {
@@ -1071,12 +1075,12 @@ a {
 
 .menu-card,
 .record-card {
-  padding: 14px;
+  padding: 12px;
 }
 
 .menu-card {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .menu-card strong,
@@ -1090,7 +1094,7 @@ a {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .menu-price-old {
@@ -1099,11 +1103,11 @@ a {
 
 .two-col-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .preview-card {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid rgba(12, 26, 66, 0.08);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(12, 26, 66, 0.05), rgba(255, 255, 255, 0.7));
@@ -1112,7 +1116,7 @@ a {
 .preview-card span {
   display: block;
   font-family: var(--font-jakarta), "Segoe UI", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1123,7 +1127,7 @@ a {
   display: block;
   margin-top: 6px;
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(1.05rem, 3.4vw, 1.35rem);
+  font-size: clamp(0.98rem, 3vw, 1.2rem);
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--navy);
@@ -1134,7 +1138,7 @@ a {
 .record-main,
 .record-side {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .form-footer,
@@ -1192,7 +1196,7 @@ a {
   display: grid;
   justify-items: center;
   gap: 8px;
-  padding: 18px 12px;
+  padding: 16px 10px;
   border: 1px dashed rgba(12, 26, 66, 0.18);
   border-radius: var(--radius-lg);
   background: rgba(12, 26, 66, 0.04);
