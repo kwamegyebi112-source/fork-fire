@@ -2,10 +2,9 @@ export default function SetupCard() {
   return (
     <article className="auth-card auth-card-compact">
       <p className="eyebrow">Setup Required</p>
-      <h2 className="auth-card-title">Add your Supabase keys first</h2>
+      <h2 className="auth-card-title">Add Supabase keys</h2>
       <p className="auth-card-copy">
-        Create a `.env.local` file from `.env.local.example`, then add your Supabase project URL
-        and anon key before running or deploying the app.
+        Copy `.env.local.example`, add your project URL and anon key, then run the schema once.
       </p>
 
       <div className="setup-list">
@@ -15,15 +14,15 @@ export default function SetupCard() {
         </div>
         <div className="setup-row">
           <strong>2.</strong>
-          <span>Paste your Supabase URL and anon key.</span>
+          <span>Add your Supabase URL and anon key.</span>
         </div>
         <div className="setup-row">
           <strong>3.</strong>
-          <span>Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.</span>
+          <span>Run `supabase/schema.sql` in the Supabase SQL editor.</span>
         </div>
         <div className="setup-row">
           <strong>4.</strong>
-          <span>Create the owner account in Supabase Auth, then disable public signups.</span>
+          <span>Create the owner account and disable public signups.</span>
         </div>
       </div>
     </article>

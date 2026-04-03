@@ -40,7 +40,7 @@ export default function LoginForm() {
 
       <form className="auth-form" onSubmit={handleSubmit}>
         <label className="field">
-          <span>Email address</span>
+          <span>Email</span>
           <input
             type="email"
             autoComplete="email"
@@ -63,7 +63,7 @@ export default function LoginForm() {
             enterKeyHint="go"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
+            placeholder="Password"
             required
           />
         </label>
@@ -71,7 +71,7 @@ export default function LoginForm() {
         {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
         <button className="primary-button auth-submit" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in..." : "Login"}
+          {isSubmitting ? "Signing in..." : "Log in"}
         </button>
       </form>
     </article>

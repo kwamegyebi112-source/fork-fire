@@ -338,8 +338,8 @@ export default function DashboardApp({ userEmail, displayName }) {
 
           <div>
             <p className="eyebrow">Fork N' Fire</p>
-            <h1 className="app-title">Private Sales Tracker</h1>
-            <p className="app-subtitle">Cloud-synced daily records for mobile use.</p>
+            <h1 className="app-title">Sales Tracker</h1>
+            <p className="app-subtitle">Daily sales and expenses in one place.</p>
           </div>
         </div>
 
@@ -432,7 +432,7 @@ export default function DashboardApp({ userEmail, displayName }) {
             <div className="section-head">
               <div>
                 <p className="eyebrow">Overview</p>
-                <h2 className="section-title">Day Snapshot</h2>
+                <h2 className="section-title">Snapshot</h2>
               </div>
               <p className="section-meta">{status.message}</p>
             </div>
@@ -442,18 +442,14 @@ export default function DashboardApp({ userEmail, displayName }) {
                 <span className="highlight-label">Best Seller</span>
                 <strong className="highlight-value">{bestSeller?.name ?? "-"}</strong>
                 <small className="highlight-meta">
-                  {bestSeller
-                    ? `${bestSeller.quantity} item${bestSeller.quantity === 1 ? "" : "s"} sold`
-                    : "No sales yet"}
+                  {bestSeller ? `${bestSeller.quantity} sold` : "No sales"}
                 </small>
               </div>
 
               <div className="highlight-panel">
                 <span className="highlight-label">Top Expense</span>
                 <strong className="highlight-value">{topExpense?.category ?? "-"}</strong>
-                <small className="highlight-meta">
-                  {topExpense ? formatCurrency(topExpense.amount) : "No expenses yet"}
-                </small>
+                <small className="highlight-meta">{topExpense ? formatCurrency(topExpense.amount) : "No expenses"}</small>
               </div>
             </div>
           </article>
@@ -478,9 +474,9 @@ export default function DashboardApp({ userEmail, displayName }) {
               <div className="section-head">
                 <div>
                   <p className="eyebrow">Trend</p>
-                  <h2 className="section-title">Last 7 Days</h2>
+                  <h2 className="section-title">7-Day Trend</h2>
                 </div>
-                <p className="section-meta">{isLoading ? "Syncing..." : "Live from Supabase"}</p>
+                <p className="section-meta">{isLoading ? "Updating..." : "Updates automatically"}</p>
               </div>
 
               <div className="trend-grid">
@@ -504,8 +500,8 @@ export default function DashboardApp({ userEmail, displayName }) {
             <article className="panel content-card">
               <div className="section-head">
                 <div>
-                  <p className="eyebrow">Expense Mix</p>
-                  <h2 className="section-title">Categories</h2>
+                  <p className="eyebrow">Expenses</p>
+                  <h2 className="section-title">Category Split</h2>
                 </div>
               </div>
 
@@ -528,7 +524,7 @@ export default function DashboardApp({ userEmail, displayName }) {
               ) : (
                 <EmptyState
                   title="No expenses yet"
-                  description="Start logging costs for this date to see the mix."
+                  description="Add a cost to see the split."
                   variant="expense"
                 />
               )}
@@ -544,7 +540,7 @@ export default function DashboardApp({ userEmail, displayName }) {
               <div className="section-head">
                 <div>
                   <p className="eyebrow">Menu</p>
-                  <h2 className="section-title">Offer Prices</h2>
+                  <h2 className="section-title">Menu Prices</h2>
                 </div>
               </div>
 
@@ -569,7 +565,7 @@ export default function DashboardApp({ userEmail, displayName }) {
               <div className="section-head">
                 <div>
                   <p className="eyebrow">Sales</p>
-                  <h2 className="section-title">Add Sale</h2>
+                  <h2 className="section-title">New Sale</h2>
                 </div>
                 <p className="section-meta">{longDate.format(parseDateValue(reportDate))}</p>
               </div>
@@ -633,7 +629,7 @@ export default function DashboardApp({ userEmail, displayName }) {
                   </div>
 
                   <button className="primary-button" type="submit" disabled={busyAction === "sale"}>
-                    {busyAction === "sale" ? "Saving..." : "Save Sale"}
+                    {busyAction === "sale" ? "Saving..." : "Save sale"}
                   </button>
                 </div>
               </form>
@@ -644,7 +640,7 @@ export default function DashboardApp({ userEmail, displayName }) {
             <div className="section-head">
               <div>
                 <p className="eyebrow">Sales</p>
-                <h2 className="section-title">Sales Made</h2>
+                <h2 className="section-title">Sales Log</h2>
               </div>
               <div className="table-tools">
                 <span className="section-meta">{selectedSales.length} entries</span>
@@ -694,7 +690,7 @@ export default function DashboardApp({ userEmail, displayName }) {
             ) : (
               <EmptyState
                 title="No sales for this date"
-                description="Add the first order to start tracking revenue."
+                description="Add the first order to start tracking."
                 variant="sale"
               />
             )}
@@ -708,7 +704,7 @@ export default function DashboardApp({ userEmail, displayName }) {
             <div className="section-head">
               <div>
                 <p className="eyebrow">Expenses</p>
-                <h2 className="section-title">Add Expense</h2>
+                <h2 className="section-title">New Expense</h2>
               </div>
               <p className="section-meta">{longDate.format(parseDateValue(reportDate))}</p>
             </div>
@@ -758,7 +754,7 @@ export default function DashboardApp({ userEmail, displayName }) {
                 </div>
 
                 <button className="primary-button alt-button" type="submit" disabled={busyAction === "expense"}>
-                  {busyAction === "expense" ? "Saving..." : "Save Expense"}
+                  {busyAction === "expense" ? "Saving..." : "Save expense"}
                 </button>
               </div>
             </form>
@@ -768,7 +764,7 @@ export default function DashboardApp({ userEmail, displayName }) {
             <div className="section-head">
               <div>
                 <p className="eyebrow">Expenses</p>
-                <h2 className="section-title">Expenses Logged</h2>
+                <h2 className="section-title">Expense Log</h2>
               </div>
               <div className="table-tools">
                 <span className="section-meta">{selectedExpenses.length} entries</span>
@@ -815,7 +811,7 @@ export default function DashboardApp({ userEmail, displayName }) {
             ) : (
               <EmptyState
                 title="No expenses for this date"
-                description="Add the first cost to keep profit figures accurate."
+                description="Add the first cost to keep the totals honest."
                 variant="expense"
               />
             )}
@@ -934,7 +930,7 @@ function getStatus(profit, revenue, expenseTotal, itemsSold, orderCount) {
     return {
       label: "Net Result",
       badge: "No activity",
-      message: "Nothing has been recorded for this date yet.",
+      message: "No sales or expenses recorded yet.",
       tone: "neutral",
     };
   }
@@ -943,7 +939,7 @@ function getStatus(profit, revenue, expenseTotal, itemsSold, orderCount) {
     return {
       label: "Profit",
       badge: "In profit",
-      message: `${itemsSold} item${itemsSold === 1 ? "" : "s"} sold across ${orderCount} order${
+      message: `${itemsSold} item${itemsSold === 1 ? "" : "s"} across ${orderCount} sale${
         orderCount === 1 ? "" : "s"
       }.`,
       tone: "positive",
@@ -954,7 +950,7 @@ function getStatus(profit, revenue, expenseTotal, itemsSold, orderCount) {
     return {
       label: "Loss",
       badge: "Costs only",
-      message: `Sales need to cover ${formatCurrency(expenseTotal)} for this date.`,
+      message: `Need ${formatCurrency(expenseTotal)} in sales to cover costs.`,
       tone: "negative",
     };
   }
@@ -963,7 +959,7 @@ function getStatus(profit, revenue, expenseTotal, itemsSold, orderCount) {
     return {
       label: "Loss",
       badge: "Needs sales",
-      message: `${formatCurrency(Math.abs(profit))} more is needed to break even.`,
+      message: `${formatCurrency(Math.abs(profit))} needed to break even.`,
       tone: "negative",
     };
   }
@@ -971,7 +967,7 @@ function getStatus(profit, revenue, expenseTotal, itemsSold, orderCount) {
   return {
     label: "Break Even",
     badge: "Balanced",
-    message: "Sales and expenses are balanced for this date.",
+    message: "Sales and expenses are balanced.",
     tone: "neutral",
   };
 }
