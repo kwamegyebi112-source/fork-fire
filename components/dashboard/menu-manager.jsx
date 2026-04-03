@@ -70,7 +70,7 @@ export default function MenuManager({ menuItems, onUpdate }) {
       <div className="tracker-section-intro">
         <div>
           <h2>Menu Items</h2>
-          <p>Manage your menu. Changes are saved locally.</p>
+          <p>Manage your menu. Changes sync across devices.</p>
         </div>
       </div>
 

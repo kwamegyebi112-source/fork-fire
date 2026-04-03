@@ -40,7 +40,7 @@ const defaultMenuItems = [
 
 const MENU_STORAGE_KEY = "fork-n-fire-menu-items";
 
-function loadMenuItems() {
+function loadMenuItemsLocal() {
   try {
     const stored = localStorage.getItem(MENU_STORAGE_KEY);
     if (stored) {
@@ -51,7 +51,7 @@ function loadMenuItems() {
   return defaultMenuItems;
 }
 
-function saveMenuItems(items) {
+function saveMenuItemsLocal(items) {
   try {
     localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(items));
   } catch {}
@@ -88,7 +88,26 @@ export default function DashboardApp({ displayName }) {
   const activeMenuItems = useMemo(() => menuItems.filter((item) => !item.archived), [menuItems]);
 
   useEffect(() => {
-    setMenuItems(loadMenuItems());
+    async function loadMenu() {
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("id, name, current_price, archived")
+        .order("name");
+
+      if (!error && data?.length) {
+        const items = data.map((row) => ({
+          id: row.id,
+          name: row.name,
+          currentPrice: Number(row.current_price),
+          archived: Boolean(row.archived),
+        }));
+        setMenuItems(items);
+        saveMenuItemsLocal(items);
+      } else {
+        setMenuItems(loadMenuItemsLocal());
+      }
+    }
+    loadMenu();
   }, []);
 
   const dateBounds = useMemo(() => getDateBounds(dateFilter), [dateFilter]);
@@ -118,8 +137,15 @@ export default function DashboardApp({ displayName }) {
     loadRecords(dateFilter);
   }, [dateFilter]);
 
+  function nextDay(dateStr) {
+    const d = new Date(`${dateStr}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().split("T")[0];
+  }
+
   async function loadRecords(filter) {
     const { from, to } = getDateBounds(filter);
+    const dayAfterTo = nextDay(to);
     setIsLoading(true);
 
     try {
@@ -128,14 +154,14 @@ export default function DashboardApp({ displayName }) {
           .from("sales")
           .select("id, item_id, item_name, quantity, unit_price, total, notes, sold_on, created_at")
           .gte("sold_on", from)
-          .lte("sold_on", to)
+          .lt("sold_on", dayAfterTo)
           .order("sold_on", { ascending: false })
           .order("created_at", { ascending: false }),
         supabase
           .from("expenses")
           .select("id, category, amount, notes, spent_on, created_at")
           .gte("spent_on", from)
-          .lte("spent_on", to)
+          .lt("spent_on", dayAfterTo)
           .order("spent_on", { ascending: false })
           .order("created_at", { ascending: false }),
       ]);
@@ -451,9 +477,21 @@ export default function DashboardApp({ displayName }) {
 
   // --- Menu management ---
 
-  function handleMenuUpdate(updatedItems) {
+  async function handleMenuUpdate(updatedItems) {
     setMenuItems(updatedItems);
-    saveMenuItems(updatedItems);
+    saveMenuItemsLocal(updatedItems);
+
+    const rows = updatedItems.map((item) => ({
+      id: item.id,
+      name: item.name,
+      current_price: item.currentPrice,
+      archived: item.archived ?? false,
+    }));
+
+    const { error } = await supabase.from("menu_items").upsert(rows, { onConflict: "id" });
+    if (error) {
+      pushToast("Menu saved locally. Cloud sync failed — create a 'menu_items' table in Supabase to sync across devices.", "neutral");
+    }
   }
 
   // --- Navigation ---
