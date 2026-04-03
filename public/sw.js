@@ -1,4 +1,4 @@
-const CACHE_NAME = "fork-n-fire-v1";
+const CACHE_NAME = "fork-n-fire-v2";
 const APP_SHELL = ["/", "/dashboard", "/login", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -19,6 +19,32 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {
+    return;
+  }
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone();
+
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cachedPage = await caches.match(event.request);
+
+          if (cachedPage) {
+            return cachedPage;
+          }
+
+          return caches.match("/dashboard");
+        })
+    );
+
     return;
   }
 
