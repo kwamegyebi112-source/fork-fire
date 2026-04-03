@@ -250,9 +250,10 @@ export default function DashboardApp({ displayName }) {
     setBusyAction("sale");
 
     if (editingSale) {
+      const { sold_on: _drop, ...updateFields } = payload;
       const { data, error: updateError } = await supabase
         .from("sales")
-        .update(payload)
+        .update(updateFields)
         .eq("id", editingSale.id)
         .select();
       setBusyAction("");
@@ -330,9 +331,10 @@ export default function DashboardApp({ displayName }) {
     setBusyAction("expense");
 
     if (editingExpense) {
+      const { spent_on: _drop, ...updateFields } = payload;
       const { data, error: updateError } = await supabase
         .from("expenses")
-        .update(payload)
+        .update(updateFields)
         .eq("id", editingExpense.id)
         .select();
       setBusyAction("");
