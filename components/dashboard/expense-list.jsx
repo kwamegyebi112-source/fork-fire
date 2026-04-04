@@ -37,7 +37,7 @@ const emptyIcon = (
 );
 
 function formatCurrency(value) {
-  return `₵${new Intl.NumberFormat("en-GH", {
+  return `GH₵${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value || 0)}`;

@@ -1,7 +1,7 @@
 import ExpenseCategoryChart from "@/components/dashboard/expense-category-chart";
 
 function formatCurrency(value) {
-  return `₵${new Intl.NumberFormat("en-GH", {
+  return `GH₵${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value || 0)}`;
@@ -101,7 +101,7 @@ export default function InsightsPanel({ metrics, isLoading, expenses = [] }) {
         </div>
         <p className="insights-margin-context">
           {metrics.margin > 0
-            ? `You keep ${marginAbs}p of every ₵1 earned.`
+            ? `You keep ${marginAbs}p of every GH₵1 earned.`
             : metrics.margin < 0
               ? `Expenses exceed revenue by ${marginAbs}%.`
               : "Revenue and expenses are equal."}
