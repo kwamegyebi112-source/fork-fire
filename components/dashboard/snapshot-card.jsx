@@ -7,7 +7,7 @@ const summaryDateFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 function formatCurrency(value) {
-  return `GHS ${new Intl.NumberFormat("en-GH", {
+  return `₵${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value || 0)}`;

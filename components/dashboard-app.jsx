@@ -522,7 +522,7 @@ export default function DashboardApp({ displayName, userId }) {
 
   function downloadExpenseTemplate() {
     const rows = [
-      ["Date", "Expense Name", "Category", "Amount (GHS)"],
+      ["Date", "Expense Name", "Category", "Amount (₵)"],
       [entryDate, "", "", ""],
     ];
     downloadCSV("fork-n-fire-expense-template.csv", rows);

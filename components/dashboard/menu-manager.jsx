@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 function formatCurrency(value) {
-  return `GHS ${new Intl.NumberFormat("en-GH", {
+  return `₵${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value || 0)}`;
@@ -145,7 +145,7 @@ export default function MenuManager({ menuItems, onUpdate }) {
                 />
               </label>
               <label className="tracker-field">
-                <span>Price (GHS)</span>
+                <span>Price (₵)</span>
                 <input
                   type="number"
                   min="0"

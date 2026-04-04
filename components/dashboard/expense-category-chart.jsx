@@ -8,7 +8,7 @@ const CATEGORY_COLORS = {
 };
 
 function formatCurrency(value) {
-  return `GHS ${new Intl.NumberFormat("en-GH", {
+  return `₵${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value || 0)}`;
