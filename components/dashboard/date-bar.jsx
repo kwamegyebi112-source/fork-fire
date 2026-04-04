@@ -25,6 +25,11 @@ function isSameSingleDate(filter, value) {
   return filter.type === "single" && normalizeDate(filter.value) === normalizeDate(value);
 }
 
+function parseDateForLabel(value) {
+  const normalized = normalizeDate(value);
+  return normalized ? new Date(`${normalized}T12:00:00`) : new Date();
+}
+
 export default function DateBar({
   dateFilter,
   onApplyFilter,
@@ -52,10 +57,12 @@ export default function DateBar({
     const { from, to } = getDateBounds(dateFilter);
 
     if (dateFilter.type === "range" && from !== to) {
-      return `${rangeDateFormatter.format(new Date(from))} - ${rangeDateFormatter.format(new Date(to))}`;
+      return `${rangeDateFormatter.format(parseDateForLabel(from))} - ${rangeDateFormatter.format(
+        parseDateForLabel(to)
+      )}`;
     }
 
-    return singleDateFormatter.format(new Date(from));
+    return singleDateFormatter.format(parseDateForLabel(from));
   }, [dateFilter]);
 
   useEffect(() => {
