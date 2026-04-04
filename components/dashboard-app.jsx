@@ -60,10 +60,11 @@ function saveMenuItemsLocal(items) {
 const emptyExpenseForm = { name: "", amount: "" };
 
 const UNDO_TIMEOUT = 5000;
+const AUTO_SYNC_INTERVAL_MS = 3000;
 const SALES_SELECT_FIELDS = "id, item_id, item_name, quantity, unit_price, total, notes, sold_on, created_at";
 const EXPENSES_SELECT_FIELDS = "id, category, amount, notes, spent_on, created_at";
 
-export default function DashboardApp({ displayName }) {
+export default function DashboardApp({ displayName, userId }) {
   const router = useRouter();
   const supabase = createClient();
   const expenseUploadInputRef = useRef(null);
@@ -87,6 +88,7 @@ export default function DashboardApp({ displayName }) {
   const [isSaleComposerOpen, setIsSaleComposerOpen] = useState(false);
   const [isExpenseComposerOpen, setIsExpenseComposerOpen] = useState(false);
   const [undoPending, setUndoPending] = useState(null);
+  const dateFilterRef = useRef(dateFilter);
 
   const activeMenuItems = useMemo(() => menuItems.filter((item) => !item.archived), [menuItems]);
 
@@ -135,6 +137,10 @@ export default function DashboardApp({ displayName }) {
   useEffect(() => {
     window.history.replaceState(null, "", `#${activeView}`);
   }, [activeView]);
+
+  useEffect(() => {
+    dateFilterRef.current = dateFilter;
+  }, [dateFilter]);
 
   useEffect(() => {
     loadRecords(dateFilter);
@@ -192,6 +198,86 @@ export default function DashboardApp({ displayName }) {
       }
     }
   }
+
+  async function refreshRecordsSilently(filter) {
+    const { from, to } = getDateBounds(filter);
+    const dayAfterTo = nextDay(to);
+
+    const [salesResponse, expensesResponse] = await Promise.all([
+      supabase
+        .from("sales")
+        .select(SALES_SELECT_FIELDS)
+        .gte("sold_on", from)
+        .lt("sold_on", dayAfterTo)
+        .order("sold_on", { ascending: false })
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("expenses")
+        .select(EXPENSES_SELECT_FIELDS)
+        .gte("spent_on", from)
+        .lt("spent_on", dayAfterTo)
+        .order("spent_on", { ascending: false })
+        .order("created_at", { ascending: false }),
+    ]);
+
+    if (salesResponse.error || expensesResponse.error) {
+      return;
+    }
+
+    setSalesData(normalizeSalesRows(salesResponse.data));
+    setExpenseData(normalizeExpenseRows(expensesResponse.data));
+  }
+
+  useEffect(() => {
+    const userFilter = userId ? `user_id=eq.${userId}` : undefined;
+
+    const realtimeChannel = supabase
+      .channel(`records-sync-${crypto.randomUUID()}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "sales",
+          ...(userFilter ? { filter: userFilter } : {}),
+        },
+        () => refreshRecordsSilently(dateFilterRef.current)
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "expenses",
+          ...(userFilter ? { filter: userFilter } : {}),
+        },
+        () => refreshRecordsSilently(dateFilterRef.current)
+      )
+      .subscribe();
+
+    const pollTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        refreshRecordsSilently(dateFilterRef.current);
+      }
+    }, AUTO_SYNC_INTERVAL_MS);
+
+    const handleFocus = () => refreshRecordsSilently(dateFilterRef.current);
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        refreshRecordsSilently(dateFilterRef.current);
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(pollTimer);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      supabase.removeChannel(realtimeChannel);
+    };
+  }, [userId]);
 
   function pushToast(message, tone = "success", action = null) {
     const id = crypto.randomUUID();

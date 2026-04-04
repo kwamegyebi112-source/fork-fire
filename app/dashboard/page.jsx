@@ -33,6 +33,7 @@ export default async function DashboardPage() {
       <div className="dashboard-backdrop dashboard-backdrop-one" aria-hidden="true" />
       <div className="dashboard-backdrop dashboard-backdrop-two" aria-hidden="true" />
       <DashboardApp
+        userId={user.id}
         userEmail={user.email ?? "Owner"}
         displayName={user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "Owner"}
       />
