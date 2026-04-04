@@ -2651,6 +2651,87 @@ body.modal-open {
   background: linear-gradient(180deg, rgba(198, 64, 49, 0.08), rgba(255, 255, 255, 0.6));
 }
 
+/* --- Expense category chart --- */
+.expense-cat-card {
+  display: grid;
+  gap: 12px;
+}
+
+.expense-cat-stack {
+  display: flex;
+  height: 10px;
+  border-radius: 99px;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.expense-cat-stack-seg {
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.expense-cat-list {
+  display: grid;
+  gap: 10px;
+}
+
+.expense-cat-row {
+  display: grid;
+  gap: 5px;
+}
+
+.expense-cat-label-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.expense-cat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.expense-cat-name {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.expense-cat-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expense-cat-amount {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.expense-cat-pct {
+  font-size: 0.75rem;
+  color: var(--muted);
+  min-width: 30px;
+  text-align: right;
+}
+
+.expense-cat-track {
+  height: 6px;
+  background: rgba(47, 54, 85, 0.07);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.expense-cat-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
 /* --- View transition animations --- */
 @keyframes view-enter {
   from {

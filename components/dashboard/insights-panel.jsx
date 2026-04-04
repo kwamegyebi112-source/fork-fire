@@ -1,3 +1,5 @@
+import ExpenseCategoryChart from "@/components/dashboard/expense-category-chart";
+
 function formatCurrency(value) {
   return `GHS ${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
@@ -31,7 +33,7 @@ const emptyInsightsIcon = (
   </svg>
 );
 
-export default function InsightsPanel({ metrics, isLoading }) {
+export default function InsightsPanel({ metrics, isLoading, expenses = [] }) {
   if (isLoading) {
     return (
       <section className="tracker-insights">
@@ -152,6 +154,8 @@ export default function InsightsPanel({ metrics, isLoading }) {
           </div>
         ) : null}
       </div>
+
+      <ExpenseCategoryChart expenses={expenses} />
     </section>
   );
 }

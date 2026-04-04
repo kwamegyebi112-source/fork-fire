@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import DateBar from "@/components/dashboard/date-bar";
+import ExpenseCategoryChart from "@/components/dashboard/expense-category-chart";
 import ExpenseForm from "@/components/dashboard/expense-form";
 import ExpenseList from "@/components/dashboard/expense-list";
 import InsightsPanel from "@/components/dashboard/insights-panel";
@@ -713,7 +714,7 @@ export default function DashboardApp({ displayName, userId }) {
 
       <div className={viewClass} key={activeView}>
         {activeView === "dashboard" ? (
-          <InsightsPanel metrics={metrics} isLoading={isLoading} />
+          <InsightsPanel metrics={metrics} isLoading={isLoading} expenses={filteredExpenses} />
         ) : activeView === "menu" ? (
           <MenuManager menuItems={menuItems} onUpdate={handleMenuUpdate} />
         ) : (
@@ -739,14 +740,17 @@ export default function DashboardApp({ displayName, userId }) {
                 onDelete={(id) => handleDelete("sales", id)}
               />
             ) : (
-              <ExpenseList
-                title="Expense list"
-                description="Expense name, amount, category, and time."
-                expenses={filteredExpenses}
-                isLoading={isLoading}
-                onEdit={openExpenseComposer}
-                onDelete={(id) => handleDelete("expenses", id)}
-              />
+              <>
+                <ExpenseCategoryChart expenses={filteredExpenses} />
+                <ExpenseList
+                  title="Expense list"
+                  description="Expense name, amount, category, and time."
+                  expenses={filteredExpenses}
+                  isLoading={isLoading}
+                  onEdit={openExpenseComposer}
+                  onDelete={(id) => handleDelete("expenses", id)}
+                />
+              </>
             )}
           </section>
         )}
