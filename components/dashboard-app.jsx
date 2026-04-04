@@ -583,6 +583,7 @@ export default function DashboardApp({ displayName, userId }) {
   // --- Menu management ---
 
   async function handleMenuUpdate(updatedItems) {
+    const previousItems = menuItems;
     setMenuItems(updatedItems);
     saveMenuItemsLocal(updatedItems);
 
@@ -593,7 +594,25 @@ export default function DashboardApp({ displayName, userId }) {
       archived: false,
     }));
 
-    const { error } = await supabase.from("menu_items").upsert(rows, { onConflict: "id" });
+    const removedIds = previousItems
+      .map((item) => item.id)
+      .filter((id) => !updatedItems.some((item) => item.id === id));
+
+    let error = null;
+
+    if (rows.length) {
+      const { error: upsertError } = await supabase.from("menu_items").upsert(rows, { onConflict: "id" });
+      if (upsertError) {
+        error = upsertError;
+      }
+    }
+
+    if (!error && removedIds.length) {
+      const { error: deleteError } = await supabase.from("menu_items").delete().in("id", removedIds);
+      if (deleteError) {
+        error = deleteError;
+      }
+    }
     if (error) {
       pushToast("Menu saved locally. Cloud sync failed — create a 'menu_items' table in Supabase to sync across devices.", "neutral");
     }
