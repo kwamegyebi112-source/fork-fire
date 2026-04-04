@@ -1,3 +1,5 @@
+const EXPENSE_CATEGORIES = ["Food Production", "Branding", "Packaging"];
+
 export default function ExpenseForm({
   expenseForm,
   busyAction,
@@ -9,10 +11,24 @@ export default function ExpenseForm({
   return (
     <form className="tracker-entry-form tracker-entry-form--modal" onSubmit={onSubmit}>
       <label className="tracker-field">
+        <span>Category</span>
+        <select
+          value={expenseForm.category}
+          onChange={(event) => onFieldChange("category", event.target.value)}
+          required
+        >
+          <option value="" disabled>Select a category</option>
+          {EXPENSE_CATEGORIES.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </label>
+
+      <label className="tracker-field">
         <span>Expense name</span>
         <input
           type="text"
-          placeholder="Vegetables, packaging, fuel"
+          placeholder="Describe the expense"
           value={expenseForm.name}
           onChange={(event) => onFieldChange("name", event.target.value)}
         />

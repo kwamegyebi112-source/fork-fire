@@ -57,7 +57,7 @@ function saveMenuItemsLocal(items) {
   } catch {}
 }
 
-const emptyExpenseForm = { name: "", amount: "" };
+const emptyExpenseForm = { name: "", amount: "", category: "" };
 
 const UNDO_TIMEOUT = 5000;
 const AUTO_SYNC_INTERVAL_MS = 3000;
@@ -402,6 +402,7 @@ export default function DashboardApp({ displayName, userId }) {
       setExpenseForm({
         name: expense.expense_name || expense.notes || "",
         amount: String(expense.amount),
+        category: expense.category || "",
       });
     } else {
       setEditingExpense(null);
