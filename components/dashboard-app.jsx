@@ -306,8 +306,6 @@ export default function DashboardApp({ displayName }) {
       closeSaleComposer();
       pushToast("Sale saved.", "success");
     }
-
-    await loadRecords(dateFilter);
   }
 
   // --- Expense form handlers ---
@@ -392,8 +390,6 @@ export default function DashboardApp({ displayName }) {
       closeExpenseComposer();
       pushToast("Expense saved.", "success");
     }
-
-    await loadRecords(dateFilter);
   }
 
   // --- Expense upload ---
@@ -428,7 +424,6 @@ export default function DashboardApp({ displayName }) {
       const newRows = normalizeExpenseRows(data);
       setExpenseData((current) => [...newRows, ...current]);
       pushToast(`${data.length} expense${data.length === 1 ? "" : "s"} imported.`, "success");
-      await loadRecords(dateFilter);
     } catch (error) {
       pushToast(error instanceof Error ? error.message : "Could not import the file.", "error");
     } finally {
