@@ -1,4 +1,4 @@
-const EXPENSE_CATEGORIES = ["Food Production", "Branding", "Packaging"];
+const EXPENSE_CATEGORIES = ["Food Production", "Branding", "Packaging", "Logistical services (T&T)"];
 
 export default function ExpenseForm({
   expenseForm,

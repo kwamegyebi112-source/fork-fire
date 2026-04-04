@@ -1,9 +1,10 @@
-const CATEGORIES = ["Food Production", "Branding", "Packaging"];
+const CATEGORIES = ["Food Production", "Branding", "Packaging", "Logistical services (T&T)"];
 
 const CATEGORY_COLORS = {
   "Food Production": "#ff6a2c",
   "Branding": "#1e3a5f",
   "Packaging": "#f5a623",
+  "Logistical services (T&T)": "#4ab779",
 };
 
 function formatCurrency(value) {
