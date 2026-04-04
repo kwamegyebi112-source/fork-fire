@@ -90,7 +90,7 @@ export default function DashboardApp({ displayName, userId }) {
   const [undoPending, setUndoPending] = useState(null);
   const dateFilterRef = useRef(dateFilter);
 
-  const activeMenuItems = useMemo(() => menuItems.filter((item) => !item.archived), [menuItems]);
+  const activeMenuItems = useMemo(() => menuItems, [menuItems]);
 
   useEffect(() => {
     async function loadMenu() {
@@ -104,7 +104,7 @@ export default function DashboardApp({ displayName, userId }) {
           id: row.id,
           name: row.name,
           currentPrice: Number(row.current_price),
-          archived: Boolean(row.archived),
+          archived: false,
         }));
         setMenuItems(items);
         saveMenuItemsLocal(items);
@@ -590,7 +590,7 @@ export default function DashboardApp({ displayName, userId }) {
       id: item.id,
       name: item.name,
       current_price: item.currentPrice,
-      archived: item.archived ?? false,
+      archived: false,
     }));
 
     const { error } = await supabase.from("menu_items").upsert(rows, { onConflict: "id" });

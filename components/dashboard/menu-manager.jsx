@@ -15,8 +15,7 @@ export default function MenuManager({ menuItems, onUpdate }) {
   const [draft, setDraft] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
-  const activeItems = menuItems.filter((item) => !item.archived);
-  const archivedItems = menuItems.filter((item) => item.archived);
+  const activeItems = menuItems;
 
   function openAdd() {
     setEditingId(null);
@@ -42,7 +41,7 @@ export default function MenuManager({ menuItems, onUpdate }) {
     if (editingId) {
       onUpdate(
         menuItems.map((item) =>
-          item.id === editingId ? { ...item, name, currentPrice: price } : item
+          item.id === editingId ? { ...item, name, currentPrice: price, archived: false } : item
         )
       );
     } else {
@@ -51,14 +50,6 @@ export default function MenuManager({ menuItems, onUpdate }) {
     }
 
     closeDraft();
-  }
-
-  function handleArchive(id) {
-    onUpdate(menuItems.map((item) => (item.id === id ? { ...item, archived: true } : item)));
-  }
-
-  function handleRestore(id) {
-    onUpdate(menuItems.map((item) => (item.id === id ? { ...item, archived: false } : item)));
   }
 
   function handleRemove(id) {
@@ -106,11 +97,11 @@ export default function MenuManager({ menuItems, onUpdate }) {
                     <button
                       className="tracker-icon-button tracker-icon-button--small"
                       type="button"
-                      aria-label="Archive item"
-                      onClick={() => handleArchive(item.id)}
+                      aria-label="Remove item"
+                      onClick={() => handleRemove(item.id)}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M3 6H21M5 6V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V6M9 10L12 13L15 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 6V4.5C8 3.67 8.67 3 9.5 3H14.5C15.33 3 16 3.67 16 4.5V6M3 6H21M5 6V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V6M10 10V17M14 10V17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </button>
                   </div>
@@ -129,38 +120,6 @@ export default function MenuManager({ menuItems, onUpdate }) {
           + Add item
         </button>
       </div>
-
-      {archivedItems.length ? (
-        <div className="tracker-log-card">
-          <div className="tracker-section-head">
-            <div>
-              <h3>Archived</h3>
-              <p>Hidden from the sales form. Can be restored.</p>
-            </div>
-            <span>{archivedItems.length}</span>
-          </div>
-          <div className="tracker-log-list">
-            {archivedItems.map((item) => (
-              <article className="tracker-log-row tracker-log-row--archived" key={item.id}>
-                <div className="tracker-log-main">
-                  <strong>{item.name}</strong>
-                  <small>{formatCurrency(item.currentPrice)}</small>
-                </div>
-                <div className="tracker-log-side">
-                  <div className="tracker-log-actions">
-                    <button className="tracker-inline-button" type="button" onClick={() => handleRestore(item.id)}>
-                      Restore
-                    </button>
-                    <button className="tracker-inline-button tracker-inline-button--danger" type="button" onClick={() => handleRemove(item.id)}>
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
 
       {draft ? (
         <div className="tracker-modal-backdrop" role="presentation" onClick={closeDraft}>
