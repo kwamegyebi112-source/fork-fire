@@ -1,4 +1,4 @@
-const CACHE_NAME = "fork-n-fire-v2";
+const CACHE_NAME = "fork-n-fire-v3";
 const APP_SHELL = ["/", "/dashboard", "/login", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -19,6 +19,13 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {
+    return;
+  }
+
+  const requestUrl = new URL(event.request.url);
+
+  // Never cache cross-origin/API requests (e.g. Supabase), so data stays fresh across devices.
+  if (requestUrl.origin !== self.location.origin) {
     return;
   }
 
