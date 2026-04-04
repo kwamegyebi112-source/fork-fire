@@ -1,3 +1,5 @@
+const CATEGORY_ORDER = ["Food Production", "Branding", "Packaging", "Logistical services (T&T)"];
+
 const entryTime = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
@@ -46,6 +48,24 @@ function formatTime(value) {
   return entryTime.format(new Date(value));
 }
 
+function groupByCategory(expenses) {
+  const groups = {};
+  for (const expense of expenses) {
+    const cat = expense.category || "Other";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(expense);
+  }
+  // Return in defined order, then any unknown categories at the end
+  const ordered = [];
+  for (const cat of CATEGORY_ORDER) {
+    if (groups[cat]) ordered.push({ category: cat, items: groups[cat] });
+  }
+  for (const cat of Object.keys(groups)) {
+    if (!CATEGORY_ORDER.includes(cat)) ordered.push({ category: cat, items: groups[cat] });
+  }
+  return ordered;
+}
+
 export default function ExpenseList({
   title,
   description,
@@ -54,6 +74,8 @@ export default function ExpenseList({
   onEdit,
   onDelete,
 }) {
+  const grouped = groupByCategory(expenses);
+
   return (
     <section className="tracker-log-card">
       <div className="tracker-section-head">
@@ -72,36 +94,44 @@ export default function ExpenseList({
         </div>
       ) : expenses.length ? (
         <div className="tracker-log-list">
-          {expenses.map((expense) => (
-            <article className="tracker-log-row" key={expense.id}>
-              <div className="tracker-log-main tracker-log-main--tappable" role="button" tabIndex={0} onClick={() => onEdit(expense)} onKeyDown={(e) => e.key === "Enter" && onEdit(expense)}>
-                <strong>{expense.expense_name}</strong>
-                <small>
-                  {expense.category} | {formatTime(expense.created_at)}
-                </small>
+          {grouped.map(({ category, items }) => (
+            <div key={category} className="expense-group">
+              <div className="expense-group-header">
+                <span className="expense-group-label">{category}</span>
+                <span className="expense-group-total">
+                  {formatCurrency(items.reduce((sum, e) => sum + e.amount, 0))}
+                </span>
               </div>
-              <div className="tracker-log-side">
-                <span>{formatCurrency(expense.amount)}</span>
-                <div className="tracker-log-actions">
-                  <button
-                    className="tracker-icon-button tracker-icon-button--small tracker-icon-button--edit"
-                    type="button"
-                    aria-label="Edit expense"
-                    onClick={() => onEdit(expense)}
-                  >
-                    {editIcon}
-                  </button>
-                  <button
-                    className="tracker-icon-button tracker-icon-button--small"
-                    type="button"
-                    aria-label="Delete expense"
-                    onClick={() => onDelete(expense.id)}
-                  >
-                    {deleteIcon}
-                  </button>
-                </div>
-              </div>
-            </article>
+              {items.map((expense) => (
+                <article className="tracker-log-row" key={expense.id}>
+                  <div className="tracker-log-main tracker-log-main--tappable" role="button" tabIndex={0} onClick={() => onEdit(expense)} onKeyDown={(e) => e.key === "Enter" && onEdit(expense)}>
+                    <strong>{expense.expense_name}</strong>
+                    <small>{formatTime(expense.created_at)}</small>
+                  </div>
+                  <div className="tracker-log-side">
+                    <span>{formatCurrency(expense.amount)}</span>
+                    <div className="tracker-log-actions">
+                      <button
+                        className="tracker-icon-button tracker-icon-button--small tracker-icon-button--edit"
+                        type="button"
+                        aria-label="Edit expense"
+                        onClick={() => onEdit(expense)}
+                      >
+                        {editIcon}
+                      </button>
+                      <button
+                        className="tracker-icon-button tracker-icon-button--small"
+                        type="button"
+                        aria-label="Delete expense"
+                        onClick={() => onDelete(expense.id)}
+                      >
+                        {deleteIcon}
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
           ))}
         </div>
       ) : (

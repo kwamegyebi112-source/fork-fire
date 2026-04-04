@@ -1911,6 +1911,35 @@ a {
   gap: 10px;
 }
 
+/* Expense category groups */
+.expense-group {
+  display: grid;
+  gap: 6px;
+}
+
+.expense-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: rgba(47, 54, 85, 0.05);
+}
+
+.expense-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.expense-group-total {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
 .tracker-log-row {
   display: flex;
   align-items: flex-start;
