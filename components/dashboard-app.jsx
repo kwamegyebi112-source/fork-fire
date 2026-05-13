@@ -147,6 +147,20 @@ export default function DashboardApp({ displayName, userId }) {
         ? dateBounds.to
         : dateBounds.from;
   const filteredSales = useMemo(() => filterByDate(salesData, dateFilter, "sold_on"), [salesData, dateFilter]);
+  // Always-on 'Today's sales' feed on the dashboard view. We derive from salesData rather
+  // than firing a second query: in any filter window that includes today (all-time, today,
+  // 7 days, this month, custom ranges containing today) salesData already contains today's
+  // rows. When the user has drilled into a past day specifically, today is not in salesData
+  // and the section is hidden \u2014 the snapshot above is already speaking about that past day.
+  const todaysDate = useMemo(() => normalizeDate(new Date()), []);
+  const filterIncludesToday = useMemo(
+    () => todaysDate >= dateBounds.from && todaysDate <= dateBounds.to,
+    [todaysDate, dateBounds]
+  );
+  const todaySales = useMemo(
+    () => salesData.filter((sale) => sale.sold_on === todaysDate),
+    [salesData, todaysDate]
+  );
   // Expenses are kept if their coverage window overlaps the dashboard window at all.
   // A GH₵500 / 10-day stock purchase will appear on every day it covers, not just the day it was bought.
   const filteredExpenses = useMemo(
@@ -852,13 +866,31 @@ export default function DashboardApp({ displayName, userId }) {
 
       <div className={viewClass} key={activeView}>
         {activeView === "dashboard" ? (
-          <InsightsPanel
-            metrics={metrics}
-            isLoading={isLoading}
-            expenses={allocatedExpenses}
-            sales={filteredSales}
-            menuItems={activeMenuItems}
-          />
+          <>
+            <InsightsPanel
+              metrics={metrics}
+              isLoading={isLoading}
+              expenses={allocatedExpenses}
+              sales={filteredSales}
+              menuItems={activeMenuItems}
+            />
+
+            {/* Today's-sales feed: always shown on the dashboard view when today is in the
+                fetched data window. Lets her see individual transactions for today even when
+                the snapshot above is summarising All time / a wider range. */}
+            {filterIncludesToday ? (
+              <section className="tracker-screen">
+                <SalesList
+                  title="Today's sales"
+                  description="Individual sales recorded today, even on the All time view."
+                  sales={todaySales}
+                  isLoading={isLoading}
+                  onEdit={openSaleComposer}
+                  onDelete={(id) => handleDelete("sales", id)}
+                />
+              </section>
+            ) : null}
+          </>
         ) : activeView === "menu" ? (
           <MenuManager menuItems={menuItems} onUpdate={handleMenuUpdate} />
         ) : (
