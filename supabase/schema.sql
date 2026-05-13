@@ -12,6 +12,20 @@ create table if not exists public.menu_items (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+-- Idempotent migrations for any pre-existing menu_items table that was created
+-- without these columns. The CREATE above is skipped when the table already
+-- exists, so we have to ensure the columns / defaults / FK are in place here.
+alter table public.menu_items add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.menu_items alter column user_id set default auth.uid();
+
+-- Backfill legacy rows that were created before user_id existed. Only safe to do
+-- automatically when there is exactly one user account; multi-user setups must
+-- assign ownership manually before turning on RLS for those rows.
+update public.menu_items
+set user_id = (select id from auth.users order by created_at asc limit 1)
+where user_id is null
+  and (select count(*) from auth.users) = 1;
+
 alter table public.menu_items add column if not exists unit_cost numeric(10,2) not null default 0 check (unit_cost >= 0);
 
 alter table public.menu_items enable row level security;
