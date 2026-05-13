@@ -23,6 +23,7 @@ import {
   computeMetrics,
   createTodayFilter,
   createYesterdayFilter,
+  dedupeExpenseHistory,
   filterByDate,
   filterExpensesByWindow,
   getDateBounds,
@@ -98,6 +99,9 @@ export default function DashboardApp({ displayName, userId }) {
   const [isSaleComposerOpen, setIsSaleComposerOpen] = useState(false);
   const [isExpenseComposerOpen, setIsExpenseComposerOpen] = useState(false);
   const [undoPending, setUndoPending] = useState(null);
+  // Recent expense rows used purely as the source for autocomplete + auto-fill in the expense modal.
+  // Kept separate from windowed expenseData so suggestions span the whole user history, not just today.
+  const [expenseHistory, setExpenseHistory] = useState([]);
   const dateFilterRef = useRef(dateFilter);
 
   const activeMenuItems = useMemo(() => menuItems, [menuItems]);
@@ -166,6 +170,33 @@ export default function DashboardApp({ displayName, userId }) {
   useEffect(() => {
     loadRecords(dateFilter);
   }, [dateFilter]);
+
+  // One-time history fetch for autocomplete suggestions. Pulls the most recent ~200 expense rows
+  // so the modal can suggest names she's used before and pre-fill category + amount on selection.
+  const refreshExpenseHistory = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("expense_name:notes, category, amount, spent_on, created_at")
+      .order("spent_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error || !data) return;
+    setExpenseHistory(
+      dedupeExpenseHistory(
+        data.map((row) => ({
+          expense_name: row.expense_name,
+          category: row.category,
+          amount: Number(row.amount || 0),
+          spent_on: row.spent_on,
+          created_at: row.created_at,
+        }))
+      )
+    );
+  }, [supabase]);
+
+  useEffect(() => {
+    refreshExpenseHistory();
+  }, [refreshExpenseHistory, userId]);
 
   function nextDay(dateStr) {
     const d = new Date(`${dateStr}T12:00:00Z`);
@@ -494,6 +525,7 @@ export default function DashboardApp({ displayName, userId }) {
 
       const updated = normalizeExpenseRows([data])[0];
       setExpenseData((current) => current.map((e) => (e.id === editingExpense.id ? updated : e)));
+      refreshExpenseHistory();
       closeExpenseComposer();
       pushToast("Expense updated.", "success");
     } else {
@@ -515,6 +547,8 @@ export default function DashboardApp({ displayName, userId }) {
 
       const newRow = normalizeExpenseRows([data])[0];
       setExpenseData((current) => [newRow, ...current]);
+      // Keep autocomplete suggestions fresh — the row she just saved should appear next time.
+      refreshExpenseHistory();
 
       if (addAnother) {
         // Keep the modal open and reuse the cover period + category for the next item
@@ -847,6 +881,7 @@ export default function DashboardApp({ displayName, userId }) {
             expenseForm={expenseForm}
             busyAction={busyAction}
             selectedDate={entryDate}
+            history={expenseHistory}
             onFieldChange={handleExpenseFieldChange}
             onSubmit={handleExpenseSubmit}
             isEditing={!!editingExpense}

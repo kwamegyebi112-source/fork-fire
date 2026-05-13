@@ -21,10 +21,26 @@ export default function ExpenseForm({
   expenseForm,
   busyAction,
   selectedDate,
+  history = [],
   onFieldChange,
   onSubmit,
   isEditing,
 }) {
+  // When the user picks a name that matches a previous expense, gently pre-fill empty fields.
+  // We never overwrite values she's already set \u2014 autocomplete is helpful, not pushy.
+  function handleNameChange(rawValue) {
+    onFieldChange("name", rawValue);
+    const trimmed = (rawValue || "").trim().toLowerCase();
+    if (!trimmed) return;
+    const match = history.find((entry) => entry.name.toLowerCase() === trimmed);
+    if (!match) return;
+    if (!expenseForm.category && match.category) {
+      onFieldChange("category", match.category);
+    }
+    if (!expenseForm.amount && match.amount) {
+      onFieldChange("amount", String(match.amount));
+    }
+  }
   const mode = expenseForm.coversMode || "single";
   // Fall back to selectedDate so the preview is always meaningful even before the user touches the chip row.
   const coversFrom = expenseForm.coversFrom || selectedDate;
@@ -70,8 +86,20 @@ export default function ExpenseForm({
           type="text"
           placeholder="Describe the expense"
           value={expenseForm.name}
-          onChange={(event) => onFieldChange("name", event.target.value)}
+          onChange={(event) => handleNameChange(event.target.value)}
+          list="expense-name-suggestions"
+          autoComplete="off"
         />
+        {/* Native datalist gives us a free autocomplete dropdown with no styling cost,
+            keyboard support, and works on mobile. Limited to the most-recently-used 50 names
+            to keep the menu tidy. */}
+        <datalist id="expense-name-suggestions">
+          {history.slice(0, 50).map((entry) => (
+            <option key={entry.name} value={entry.name}>
+              {entry.category ? `${entry.category} \u00b7 GH\u20b5${entry.amount.toFixed(2)}` : ""}
+            </option>
+          ))}
+        </datalist>
       </label>
 
       <label className="tracker-field">
