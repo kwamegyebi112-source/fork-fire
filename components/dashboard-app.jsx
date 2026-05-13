@@ -22,6 +22,9 @@ import {
   buildSalePayload,
   buildSalesExportRows,
   computeMetrics,
+  createAllTimeFilter,
+  createThisMonthFilter,
+  createThisWeekFilter,
   createTodayFilter,
   createYesterdayFilter,
   dedupeExpenseHistory,
@@ -86,7 +89,9 @@ export default function DashboardApp({ displayName, userId }) {
   const [activeView, setActiveView] = useState("dashboard");
   const [prevView, setPrevView] = useState("dashboard");
   const [transitioning, setTransitioning] = useState(false);
-  const [dateFilter, setDateFilter] = useState(createTodayFilter());
+  // Default to All-time so a fresh open shows the full picture (lifetime sales / expenses).
+  // She can still tap Today / Yesterday / a date / a range to drill in.
+  const [dateFilter, setDateFilter] = useState(createAllTimeFilter());
   const [salesData, setSalesData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
   const [menuItems, setMenuItems] = useState(defaultMenuItems);
@@ -133,7 +138,14 @@ export default function DashboardApp({ displayName, userId }) {
   }, []);
 
   const dateBounds = useMemo(() => getDateBounds(dateFilter), [dateFilter]);
-  const entryDate = dateFilter.type === "range" ? dateBounds.to : dateBounds.from;
+  // entryDate is what new sales/expenses get tagged with. In 'all' mode the bounds are 1970–2999
+  // which would obviously be wrong to save against, so we fall back to today.
+  const entryDate =
+    dateFilter.type === "all"
+      ? normalizeDate(new Date())
+      : dateFilter.type === "range"
+        ? dateBounds.to
+        : dateBounds.from;
   const filteredSales = useMemo(() => filterByDate(salesData, dateFilter, "sold_on"), [salesData, dateFilter]);
   // Expenses are kept if their coverage window overlaps the dashboard window at all.
   // A GH₵500 / 10-day stock purchase will appear on every day it covers, not just the day it was bought.
@@ -214,24 +226,36 @@ export default function DashboardApp({ displayName, userId }) {
     setIsLoading(true);
 
     try {
-      const [salesResponse, expensesResponse] = await Promise.all([
-        supabase
-          .from("sales")
-          .select(SALES_SELECT_FIELDS)
-          .gte("sold_on", from)
-          .lt("sold_on", dayAfterTo)
-          .order("sold_on", { ascending: false })
-          .order("created_at", { ascending: false }),
-        // Overlap: covers_from <= to AND covers_to >= from. Pulls every expense whose span
-        // touches the visible window, even if it was *bought* days/weeks before.
-        supabase
-          .from("expenses")
-          .select(EXPENSES_SELECT_FIELDS)
-          .lte("covers_from", to)
-          .gte("covers_to", from)
-          .order("spent_on", { ascending: false })
-          .order("created_at", { ascending: false }),
-      ]);
+      const isAllTime = filter.type === "all";
+      // For 'all time', skip date constraints entirely but cap row count to keep things fast
+      // even when the user has thousands of historical entries.
+      const ROW_LIMIT = 2000;
+
+      let salesQuery = supabase
+        .from("sales")
+        .select(SALES_SELECT_FIELDS)
+        .order("sold_on", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (!isAllTime) {
+        salesQuery = salesQuery.gte("sold_on", from).lt("sold_on", dayAfterTo);
+      } else {
+        salesQuery = salesQuery.limit(ROW_LIMIT);
+      }
+
+      // Overlap: covers_from <= to AND covers_to >= from. Pulls every expense whose span
+      // touches the visible window, even if it was *bought* days/weeks before.
+      let expensesQuery = supabase
+        .from("expenses")
+        .select(EXPENSES_SELECT_FIELDS)
+        .order("spent_on", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (!isAllTime) {
+        expensesQuery = expensesQuery.lte("covers_from", to).gte("covers_to", from);
+      } else {
+        expensesQuery = expensesQuery.limit(ROW_LIMIT);
+      }
+
+      const [salesResponse, expensesResponse] = await Promise.all([salesQuery, expensesQuery]);
 
       if (salesResponse.error || expensesResponse.error) {
         throw new Error(
@@ -260,22 +284,32 @@ export default function DashboardApp({ displayName, userId }) {
     const { from, to } = getDateBounds(filter);
     const dayAfterTo = nextDay(to);
 
-    const [salesResponse, expensesResponse] = await Promise.all([
-      supabase
-        .from("sales")
-        .select(SALES_SELECT_FIELDS)
-        .gte("sold_on", from)
-        .lt("sold_on", dayAfterTo)
-        .order("sold_on", { ascending: false })
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("expenses")
-        .select(EXPENSES_SELECT_FIELDS)
-        .lte("covers_from", to)
-        .gte("covers_to", from)
-        .order("spent_on", { ascending: false })
-        .order("created_at", { ascending: false }),
-    ]);
+    const isAllTime = filter.type === "all";
+    const ROW_LIMIT = 2000;
+
+    let salesQuery = supabase
+      .from("sales")
+      .select(SALES_SELECT_FIELDS)
+      .order("sold_on", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (!isAllTime) {
+      salesQuery = salesQuery.gte("sold_on", from).lt("sold_on", dayAfterTo);
+    } else {
+      salesQuery = salesQuery.limit(ROW_LIMIT);
+    }
+
+    let expensesQuery = supabase
+      .from("expenses")
+      .select(EXPENSES_SELECT_FIELDS)
+      .order("spent_on", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (!isAllTime) {
+      expensesQuery = expensesQuery.lte("covers_from", to).gte("covers_to", from);
+    } else {
+      expensesQuery = expensesQuery.limit(ROW_LIMIT);
+    }
+
+    const [salesResponse, expensesResponse] = await Promise.all([salesQuery, expensesQuery]);
 
     if (salesResponse.error || expensesResponse.error) {
       return;
@@ -766,6 +800,9 @@ export default function DashboardApp({ displayName, userId }) {
             onNext={() => setDateFilter((current) => shiftDateFilter(current, 1))}
             onToday={() => setDateFilter(createTodayFilter())}
             onYesterday={() => setDateFilter(createYesterdayFilter())}
+            onAllTime={() => setDateFilter(createAllTimeFilter())}
+            onThisWeek={() => setDateFilter(createThisWeekFilter())}
+            onThisMonth={() => setDateFilter(createThisMonthFilter())}
           />
 
           <SnapshotCard metrics={metrics} dateFilter={dateFilter} isLoading={isLoading} view={activeView} />
@@ -897,11 +934,13 @@ export default function DashboardApp({ displayName, userId }) {
       {isSummaryOpen ? (
         <DaySummaryModal
           metrics={metrics}
-          dateLabel={dateBounds.from}
+          dateLabel={dateFilter.type === "all" ? "" : dateBounds.from}
           dateRangeLabel={
-            dateFilter.type === "range"
-              ? `${dateBounds.from} → ${dateBounds.to}`
-              : ""
+            dateFilter.type === "all"
+              ? "All time"
+              : dateFilter.type === "range"
+                ? `${dateBounds.from} → ${dateBounds.to}`
+                : ""
           }
           onClose={() => setIsSummaryOpen(false)}
         />

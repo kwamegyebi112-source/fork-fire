@@ -16,9 +16,11 @@ function formatCurrency(value) {
 export default function SnapshotCard({ metrics, dateFilter, isLoading, view }) {
   const { from, to } = getDateBounds(dateFilter);
   const summaryLabel =
-    from === to
-      ? summaryDateFormatter.format(new Date(from))
-      : `${summaryDateFormatter.format(new Date(from))} - ${summaryDateFormatter.format(new Date(to))}`;
+    dateFilter.type === "all"
+      ? "All time"
+      : from === to
+        ? summaryDateFormatter.format(new Date(from))
+        : `${summaryDateFormatter.format(new Date(from))} - ${summaryDateFormatter.format(new Date(to))}`;
 
   if (view === "sales") {
     return (

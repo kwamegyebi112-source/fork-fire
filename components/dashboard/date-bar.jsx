@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  createAllTimeFilter,
   createRangeDateFilter,
   createSingleDateFilter,
+  createThisMonthFilter,
+  createThisWeekFilter,
   createTodayFilter,
   createYesterdayFilter,
   getDateBounds,
@@ -37,6 +40,9 @@ export default function DateBar({
   onNext,
   onToday,
   onYesterday,
+  onAllTime,
+  onThisWeek,
+  onThisMonth,
 }) {
   const [isCustomOpen, setIsCustomOpen] = useState(false);
   const [draftType, setDraftType] = useState(dateFilter.type);
@@ -54,6 +60,10 @@ export default function DateBar({
   }, [isCustomOpen]);
 
   const label = useMemo(() => {
+    if (dateFilter.type === "all") {
+      return "All time";
+    }
+
     const { from, to } = getDateBounds(dateFilter);
 
     if (dateFilter.type === "range" && from !== to) {
@@ -90,18 +100,37 @@ export default function DateBar({
     <>
       <div className="tracker-datebar">
         <div className="tracker-datebar-row tracker-datebar-row--nav">
-          <button className="tracker-datebar-arrow" type="button" onClick={onPrevious} aria-label="Previous date">
-            <span aria-hidden="true">{"<"}</span>
-          </button>
+          {/* In 'all time' mode, prev/next arrows have no meaning, so we use placeholder spans
+              to keep the label centered without changing the layout. */}
+          {dateFilter.type !== "all" ? (
+            <button className="tracker-datebar-arrow" type="button" onClick={onPrevious} aria-label="Previous date">
+              <span aria-hidden="true">{"<"}</span>
+            </button>
+          ) : (
+            <span className="tracker-datebar-arrow" aria-hidden="true" style={{ visibility: "hidden" }} />
+          )}
           <button className="tracker-datebar-label" type="button" onClick={() => setIsCustomOpen(true)}>
             {label}
           </button>
-          <button className="tracker-datebar-arrow" type="button" onClick={onNext} aria-label="Next date">
-            <span aria-hidden="true">{">"}</span>
-          </button>
+          {dateFilter.type !== "all" ? (
+            <button className="tracker-datebar-arrow" type="button" onClick={onNext} aria-label="Next date">
+              <span aria-hidden="true">{">"}</span>
+            </button>
+          ) : (
+            <span className="tracker-datebar-arrow" aria-hidden="true" style={{ visibility: "hidden" }} />
+          )}
         </div>
 
         <div className="tracker-datebar-row tracker-datebar-row--filters">
+          {onAllTime ? (
+            <button
+              className={`tracker-datebar-chip ${dateFilter.type === "all" ? "is-active" : ""}`}
+              type="button"
+              onClick={onAllTime}
+            >
+              All time
+            </button>
+          ) : null}
           <button
             className={`tracker-datebar-chip ${isSameSingleDate(dateFilter, createTodayFilter().value) ? "is-active" : ""}`}
             type="button"
@@ -116,6 +145,16 @@ export default function DateBar({
           >
             Yesterday
           </button>
+          {onThisWeek ? (
+            <button className="tracker-datebar-chip" type="button" onClick={onThisWeek}>
+              7 days
+            </button>
+          ) : null}
+          {onThisMonth ? (
+            <button className="tracker-datebar-chip" type="button" onClick={onThisMonth}>
+              This month
+            </button>
+          ) : null}
           <button
             className={`tracker-datebar-chip ${dateFilter.type === "range" ? "is-active" : ""}`}
             type="button"
