@@ -14,6 +14,7 @@ import SalesList from "@/components/dashboard/sales-list";
 import SnapshotCard from "@/components/dashboard/snapshot-card";
 import Topbar from "@/components/dashboard/topbar";
 import {
+  allocateExpensesToWindow,
   buildExpenseExportRows,
   buildExpensePayload,
   buildExpenseUploadRows,
@@ -23,6 +24,7 @@ import {
   createTodayFilter,
   createYesterdayFilter,
   filterByDate,
+  filterExpensesByWindow,
   getDateBounds,
   normalizeDate,
   normalizeExpenseRows,
@@ -58,12 +60,19 @@ function saveMenuItemsLocal(items) {
   } catch {}
 }
 
-const emptyExpenseForm = { name: "", amount: "", category: "" };
+const emptyExpenseForm = {
+  name: "",
+  amount: "",
+  category: "",
+  coversMode: "single",
+  coversFrom: "",
+  coversTo: "",
+};
 
 const UNDO_TIMEOUT = 5000;
 const AUTO_SYNC_INTERVAL_MS = 3000;
 const SALES_SELECT_FIELDS = "id, item_id, item_name, quantity, unit_price, total, notes, sold_on, created_at";
-const EXPENSES_SELECT_FIELDS = "id, category, amount, notes, spent_on, created_at";
+const EXPENSES_SELECT_FIELDS = "id, category, amount, notes, spent_on, covers_from, covers_to, created_at";
 
 export default function DashboardApp({ displayName, userId }) {
   const router = useRouter();
@@ -119,11 +128,22 @@ export default function DashboardApp({ displayName, userId }) {
   const dateBounds = useMemo(() => getDateBounds(dateFilter), [dateFilter]);
   const entryDate = dateFilter.type === "range" ? dateBounds.to : dateBounds.from;
   const filteredSales = useMemo(() => filterByDate(salesData, dateFilter, "sold_on"), [salesData, dateFilter]);
+  // Expenses are kept if their coverage window overlaps the dashboard window at all.
+  // A GH₵500 / 10-day stock purchase will appear on every day it covers, not just the day it was bought.
   const filteredExpenses = useMemo(
-    () => filterByDate(expenseData, dateFilter, "spent_on"),
+    () => filterExpensesByWindow(expenseData, dateFilter),
     [expenseData, dateFilter]
   );
-  const metrics = useMemo(() => computeMetrics(filteredSales, filteredExpenses), [filteredSales, filteredExpenses]);
+  // Allocated rows carry only the portion of each expense that falls inside the current window.
+  // computeMetrics will prefer allocated_amount, so net = revenue − fair-share expenses.
+  const allocatedExpenses = useMemo(
+    () => allocateExpensesToWindow(filteredExpenses, dateFilter),
+    [filteredExpenses, dateFilter]
+  );
+  const metrics = useMemo(
+    () => computeMetrics(filteredSales, allocatedExpenses),
+    [filteredSales, allocatedExpenses]
+  );
   const trackerSubtitle =
     activeView === "expenses" ? "Expenses" : activeView === "sales" ? "Sales" : activeView === "menu" ? "Menu" : "Sales Tracker";
 
@@ -168,11 +188,13 @@ export default function DashboardApp({ displayName, userId }) {
           .lt("sold_on", dayAfterTo)
           .order("sold_on", { ascending: false })
           .order("created_at", { ascending: false }),
+        // Overlap: covers_from <= to AND covers_to >= from. Pulls every expense whose span
+        // touches the visible window, even if it was *bought* days/weeks before.
         supabase
           .from("expenses")
           .select(EXPENSES_SELECT_FIELDS)
-          .gte("spent_on", from)
-          .lt("spent_on", dayAfterTo)
+          .lte("covers_from", to)
+          .gte("covers_to", from)
           .order("spent_on", { ascending: false })
           .order("created_at", { ascending: false }),
       ]);
@@ -215,8 +237,8 @@ export default function DashboardApp({ displayName, userId }) {
       supabase
         .from("expenses")
         .select(EXPENSES_SELECT_FIELDS)
-        .gte("spent_on", from)
-        .lt("spent_on", dayAfterTo)
+        .lte("covers_from", to)
+        .gte("covers_to", from)
         .order("spent_on", { ascending: false })
         .order("created_at", { ascending: false }),
     ]);
@@ -400,14 +422,27 @@ export default function DashboardApp({ displayName, userId }) {
   function openExpenseComposer(expense = null) {
     if (expense) {
       setEditingExpense(expense);
+      // Derive the chip selection from the stored span so the form reflects what was saved.
+      // A span equal to spent_on (1 day) maps to 'single'; everything else opens as 'custom'.
+      const coversFrom = expense.covers_from || expense.spent_on;
+      const coversTo = expense.covers_to || coversFrom;
+      const isSingleDay = coversFrom === coversTo && coversFrom === expense.spent_on;
       setExpenseForm({
         name: expense.expense_name || expense.notes || "",
         amount: String(expense.amount),
         category: expense.category || "",
+        coversMode: isSingleDay ? "single" : "custom",
+        coversFrom,
+        coversTo,
       });
     } else {
       setEditingExpense(null);
-      setExpenseForm({ ...emptyExpenseForm });
+      // Default new expense to a single-day span on the dashboard's selected date — matches legacy UX.
+      setExpenseForm({
+        ...emptyExpenseForm,
+        coversFrom: entryDate,
+        coversTo: entryDate,
+      });
     }
     setIsExpenseComposerOpen(true);
   }
@@ -424,6 +459,11 @@ export default function DashboardApp({ displayName, userId }) {
 
   async function handleExpenseSubmit(event) {
     event.preventDefault();
+
+    // 'Save & add another' submits the same form but with name="add-another"; we detect it here
+    // so we can keep the modal open after a successful insert (shopping-trip workflow).
+    const addAnother =
+      !editingExpense && event.nativeEvent?.submitter?.name === "add-another";
 
     const { error, payload } = buildExpensePayload(expenseForm, entryDate);
     if (error || !payload) {
@@ -475,8 +515,18 @@ export default function DashboardApp({ displayName, userId }) {
 
       const newRow = normalizeExpenseRows([data])[0];
       setExpenseData((current) => [newRow, ...current]);
-      closeExpenseComposer();
-      pushToast("Expense saved.", "success");
+
+      if (addAnother) {
+        // Keep the modal open and reuse the cover period + category for the next item
+        // in the same shopping trip. Only clear name + amount so she can rapid-fire entries.
+        setExpenseForm((current) =>
+          current ? { ...current, name: "", amount: "" } : current
+        );
+        pushToast("Expense saved. Add the next item.", "success");
+      } else {
+        closeExpenseComposer();
+        pushToast("Expense saved.", "success");
+      }
     }
   }
 
@@ -714,7 +764,7 @@ export default function DashboardApp({ displayName, userId }) {
 
       <div className={viewClass} key={activeView}>
         {activeView === "dashboard" ? (
-          <InsightsPanel metrics={metrics} isLoading={isLoading} expenses={filteredExpenses} />
+          <InsightsPanel metrics={metrics} isLoading={isLoading} expenses={allocatedExpenses} />
         ) : activeView === "menu" ? (
           <MenuManager menuItems={menuItems} onUpdate={handleMenuUpdate} />
         ) : (
@@ -741,11 +791,11 @@ export default function DashboardApp({ displayName, userId }) {
               />
             ) : (
               <>
-                <ExpenseCategoryChart expenses={filteredExpenses} />
+                <ExpenseCategoryChart expenses={allocatedExpenses} />
                 <ExpenseList
                   title="Expense list"
                   description="Expense name, amount, category, and time."
-                  expenses={filteredExpenses}
+                  expenses={allocatedExpenses}
                   isLoading={isLoading}
                   onEdit={openExpenseComposer}
                   onDelete={(id) => handleDelete("expenses", id)}

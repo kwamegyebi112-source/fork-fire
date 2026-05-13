@@ -14,15 +14,23 @@ function formatCurrency(value) {
   }).format(value || 0)}`;
 }
 
+// Read the in-window share if the caller pre-allocated; otherwise fall back to the raw amount.
+// This keeps chart totals consistent with the snapshot card while staying backwards-compatible.
+function amountOf(expense) {
+  return expense.allocated_amount !== undefined
+    ? Number(expense.allocated_amount || 0)
+    : Number(expense.amount || 0);
+}
+
 export default function ExpenseCategoryChart({ expenses }) {
   if (!expenses.length) return null;
 
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const total = expenses.reduce((sum, e) => sum + amountOf(e), 0);
 
   const categoryTotals = CATEGORIES.map((cat) => {
     const amount = expenses
       .filter((e) => e.category === cat)
-      .reduce((sum, e) => sum + e.amount, 0);
+      .reduce((sum, e) => sum + amountOf(e), 0);
     const pct = total > 0 ? Math.round((amount / total) * 100) : 0;
     return { name: cat, amount, pct, color: CATEGORY_COLORS[cat] };
   });

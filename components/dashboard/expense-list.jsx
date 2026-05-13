@@ -94,19 +94,33 @@ export default function ExpenseList({
         </div>
       ) : expenses.length ? (
         <div className="tracker-log-list">
-          {grouped.map(({ category, items }) => (
+          {grouped.map(({ category, items }) => {
+            // Group total reflects the in-window share (allocated_amount) so it lines up with the snapshot card.
+            // Falls back to raw amount for rows that weren't allocated (e.g. legacy callers).
+            const groupTotal = items.reduce(
+              (sum, e) =>
+                sum +
+                (e.allocated_amount !== undefined ? Number(e.allocated_amount) : Number(e.amount)),
+              0
+            );
+            return (
             <div key={category} className="expense-group">
               <div className="expense-group-header">
                 <span className="expense-group-label">{category}</span>
-                <span className="expense-group-total">
-                  {formatCurrency(items.reduce((sum, e) => sum + e.amount, 0))}
-                </span>
+                <span className="expense-group-total">{formatCurrency(groupTotal)}</span>
               </div>
-              {items.map((expense) => (
+              {items.map((expense) => {
+                const spanDays = expense.span_days || 1;
+                const dailyShare = expense.daily_share !== undefined ? expense.daily_share : expense.amount;
+                return (
                 <article className="tracker-log-row" key={expense.id}>
                   <div className="tracker-log-main tracker-log-main--tappable" role="button" tabIndex={0} onClick={() => onEdit(expense)} onKeyDown={(e) => e.key === "Enter" && onEdit(expense)}>
                     <strong>{expense.expense_name}</strong>
-                    <small>{formatTime(expense.created_at)}</small>
+                    <small>
+                      {spanDays > 1
+                        ? `${formatCurrency(dailyShare)}/day · ${spanDays} days`
+                        : formatTime(expense.created_at)}
+                    </small>
                   </div>
                   <div className="tracker-log-side">
                     <span>{formatCurrency(expense.amount)}</span>
@@ -130,9 +144,11 @@ export default function ExpenseList({
                     </div>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="tracker-empty">
