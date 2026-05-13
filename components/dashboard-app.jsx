@@ -36,10 +36,10 @@ import {
 import { createClient } from "@/lib/supabase/client";
 
 const defaultMenuItems = [
-  { id: "fried-yam", name: "Fried Yam + Pork/Chicken", currentPrice: 40, archived: false },
-  { id: "jollof-rice", name: "Jollof Rice + Pork/Chicken", currentPrice: 40, archived: false },
-  { id: "loaded-angwamo", name: "Loaded Angwamo", currentPrice: 50, archived: false },
-  { id: "kenkey-fish", name: "Kenkey + Fish", currentPrice: 20, archived: false },
+  { id: "fried-yam", name: "Fried Yam + Pork/Chicken", currentPrice: 40, unitCost: 0, archived: false },
+  { id: "jollof-rice", name: "Jollof Rice + Pork/Chicken", currentPrice: 40, unitCost: 0, archived: false },
+  { id: "loaded-angwamo", name: "Loaded Angwamo", currentPrice: 50, unitCost: 0, archived: false },
+  { id: "kenkey-fish", name: "Kenkey + Fish", currentPrice: 20, unitCost: 0, archived: false },
 ];
 
 const MENU_STORAGE_KEY = "fork-n-fire-menu-items";
@@ -110,7 +110,7 @@ export default function DashboardApp({ displayName, userId }) {
     async function loadMenu() {
       const { data, error } = await supabase
         .from("menu_items")
-        .select("id, name, current_price, archived")
+        .select("id, name, current_price, unit_cost, archived")
         .order("name");
 
       if (!error && data?.length) {
@@ -118,6 +118,7 @@ export default function DashboardApp({ displayName, userId }) {
           id: row.id,
           name: row.name,
           currentPrice: Number(row.current_price),
+          unitCost: Number(row.unit_cost || 0),
           archived: false,
         }));
         setMenuItems(items);
@@ -677,6 +678,7 @@ export default function DashboardApp({ displayName, userId }) {
       id: item.id,
       name: item.name,
       current_price: item.currentPrice,
+      unit_cost: Number(item.unitCost || 0),
       archived: false,
     }));
 
@@ -798,7 +800,13 @@ export default function DashboardApp({ displayName, userId }) {
 
       <div className={viewClass} key={activeView}>
         {activeView === "dashboard" ? (
-          <InsightsPanel metrics={metrics} isLoading={isLoading} expenses={allocatedExpenses} />
+          <InsightsPanel
+            metrics={metrics}
+            isLoading={isLoading}
+            expenses={allocatedExpenses}
+            sales={filteredSales}
+            menuItems={activeMenuItems}
+          />
         ) : activeView === "menu" ? (
           <MenuManager menuItems={menuItems} onUpdate={handleMenuUpdate} />
         ) : (

@@ -9,7 +9,7 @@ function formatCurrency(value) {
   }).format(value || 0)}`;
 }
 
-const emptyItem = { name: "", currentPrice: "" };
+const emptyItem = { name: "", currentPrice: "", unitCost: "" };
 
 export default function MenuManager({ menuItems, onUpdate }) {
   const [draft, setDraft] = useState(null);
@@ -24,7 +24,12 @@ export default function MenuManager({ menuItems, onUpdate }) {
 
   function openEdit(item) {
     setEditingId(item.id);
-    setDraft({ name: item.name, currentPrice: String(item.currentPrice) });
+    setDraft({
+      name: item.name,
+      currentPrice: String(item.currentPrice),
+      // Default to empty string if unit_cost was never set so the input shows as blank, not 0.
+      unitCost: item.unitCost ? String(item.unitCost) : "",
+    });
   }
 
   function closeDraft() {
@@ -35,18 +40,25 @@ export default function MenuManager({ menuItems, onUpdate }) {
   function handleSave() {
     const name = (draft.name || "").trim();
     const price = Number.parseFloat(draft.currentPrice);
+    // unit_cost is optional; blank or invalid input means 'no estimate yet' → 0.
+    const cost = Math.max(0, Number.parseFloat(draft.unitCost) || 0);
 
     if (!name || !Number.isFinite(price) || price <= 0) return;
 
     if (editingId) {
       onUpdate(
         menuItems.map((item) =>
-          item.id === editingId ? { ...item, name, currentPrice: price, archived: false } : item
+          item.id === editingId
+            ? { ...item, name, currentPrice: price, unitCost: cost, archived: false }
+            : item
         )
       );
     } else {
       const id = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
-      onUpdate([...menuItems, { id, name, currentPrice: price, archived: false }]);
+      onUpdate([
+        ...menuItems,
+        { id, name, currentPrice: price, unitCost: cost, archived: false },
+      ]);
     }
 
     closeDraft();
@@ -80,7 +92,12 @@ export default function MenuManager({ menuItems, onUpdate }) {
               <article className="tracker-log-row" key={item.id}>
                 <div className="tracker-log-main tracker-log-main--tappable" role="button" tabIndex={0} onClick={() => openEdit(item)} onKeyDown={(e) => e.key === "Enter" && openEdit(item)}>
                   <strong>{item.name}</strong>
-                  <small>{formatCurrency(item.currentPrice)}</small>
+                  <small>
+                    {formatCurrency(item.currentPrice)}
+                    {item.unitCost > 0
+                      ? ` · cost ${formatCurrency(item.unitCost)} · margin ${formatCurrency(item.currentPrice - item.unitCost)}`
+                      : " · cost not set"}
+                  </small>
                 </div>
                 <div className="tracker-log-side">
                   <div className="tracker-log-actions">
@@ -155,6 +172,21 @@ export default function MenuManager({ menuItems, onUpdate }) {
                   value={draft.currentPrice}
                   onChange={(e) => setDraft((d) => ({ ...d, currentPrice: e.target.value }))}
                 />
+              </label>
+              <label className="tracker-field">
+                <span>Cost per plate (₵)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="Estimated ingredient cost (optional)"
+                  value={draft.unitCost}
+                  onChange={(e) => setDraft((d) => ({ ...d, unitCost: e.target.value }))}
+                />
+                <small style={{ opacity: 0.7, marginTop: "4px" }}>
+                  Used only for the “Most profitable items” insight. Doesn’t affect your net profit.
+                </small>
               </label>
               <button className="tracker-primary-button tracker-primary-button--full" type="button" onClick={handleSave}>
                 {editingId ? "Update item" : "Add item"}

@@ -1,4 +1,5 @@
 import ExpenseCategoryChart from "@/components/dashboard/expense-category-chart";
+import ItemMarginCard from "@/components/dashboard/item-margin-card";
 
 function formatCurrency(value) {
   return `GH₵${new Intl.NumberFormat("en-GH", {
@@ -33,7 +34,7 @@ const emptyInsightsIcon = (
   </svg>
 );
 
-export default function InsightsPanel({ metrics, isLoading, expenses = [] }) {
+export default function InsightsPanel({ metrics, isLoading, expenses = [], sales = [], menuItems = [] }) {
   if (isLoading) {
     return (
       <section className="tracker-insights">
@@ -156,6 +157,7 @@ export default function InsightsPanel({ metrics, isLoading, expenses = [] }) {
       </div>
 
       <ExpenseCategoryChart expenses={expenses} />
+      <ItemMarginCard sales={sales} menuItems={menuItems} />
     </section>
   );
 }

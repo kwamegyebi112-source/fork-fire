@@ -1,5 +1,46 @@
 create extension if not exists pgcrypto;
 
+-- Menu catalog. Each user maintains their own menu. unit_cost is the estimated
+-- cost-of-goods per plate (used purely for per-item margin insights; the main
+-- net-profit math still subtracts the tracked expenses table, never unit_cost).
+create table if not exists public.menu_items (
+  id text primary key,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  name text not null,
+  current_price numeric(10,2) not null check (current_price >= 0),
+  archived boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.menu_items add column if not exists unit_cost numeric(10,2) not null default 0 check (unit_cost >= 0);
+
+alter table public.menu_items enable row level security;
+
+drop policy if exists "menu_items_select_own" on public.menu_items;
+create policy "menu_items_select_own"
+on public.menu_items
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "menu_items_insert_own" on public.menu_items;
+create policy "menu_items_insert_own"
+on public.menu_items
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "menu_items_update_own" on public.menu_items;
+create policy "menu_items_update_own"
+on public.menu_items
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "menu_items_delete_own" on public.menu_items;
+create policy "menu_items_delete_own"
+on public.menu_items
+for delete
+using (auth.uid() = user_id);
+
 create table if not exists public.sales (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,

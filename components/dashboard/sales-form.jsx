@@ -54,16 +54,41 @@ export default function SalesForm({
         </label>
       </div>
 
-      <div className="tracker-form-meta">
-        <div className="tracker-preview">
-          <span>Date</span>
-          <strong>{selectedDate}</strong>
-        </div>
-        <div className="tracker-preview">
-          <span>Total</span>
-          <strong>{formatCurrency(total)}</strong>
-        </div>
-      </div>
+      {(() => {
+        // Margin preview is purely informational - it appears only when the menu item has a
+        // unit_cost set. It never blocks save and never affects what gets stored.
+        const selected = menuItems.find((item) => item.id === saleForm.itemId);
+        const unitCost = Number(selected?.unitCost || 0);
+        const unitPrice = Number.parseFloat(saleForm.unitPrice) || 0;
+        const quantity = Math.max(0, Number.parseInt(saleForm.quantity, 10) || 0);
+        const marginPerUnit = unitPrice - unitCost;
+        const marginTotal = marginPerUnit * quantity;
+        const showMargin = unitCost > 0 && unitPrice > 0;
+
+        return (
+          <div className="tracker-form-meta">
+            <div className="tracker-preview">
+              <span>Date</span>
+              <strong>{selectedDate}</strong>
+            </div>
+            <div className="tracker-preview">
+              <span>Total</span>
+              <strong>{formatCurrency(total)}</strong>
+            </div>
+            {showMargin ? (
+              <div className="tracker-preview">
+                <span>Est. margin</span>
+                <strong style={{ color: marginPerUnit >= 0 ? undefined : "var(--tracker-danger, #c0392b)" }}>
+                  {formatCurrency(marginTotal)}
+                  <small style={{ opacity: 0.7, fontWeight: 400 }}>
+                    {" · "}{formatCurrency(marginPerUnit)}/plate
+                  </small>
+                </strong>
+              </div>
+            ) : null}
+          </div>
+        );
+      })()}
 
       <button className="tracker-primary-button tracker-primary-button--full" type="submit" disabled={busyAction === "sale"}>
         {busyAction === "sale" ? "Saving..." : isEditing ? "Update sale" : "Save sale"}
