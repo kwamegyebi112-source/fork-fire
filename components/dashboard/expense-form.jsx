@@ -1,4 +1,11 @@
+import { useEffect, useState } from "react";
 import { dateDiffDaysInclusive, shiftDateValue } from "@/lib/dashboard";
+import {
+  addExpenseFavorite,
+  isExpenseFavorited,
+  loadExpenseFavorites,
+  removeExpenseFavorite,
+} from "@/lib/favorites";
 
 const EXPENSE_CATEGORIES = ["Food Production", "Branding", "Packaging", "Logistical services (T&T)"];
 
@@ -26,8 +33,39 @@ export default function ExpenseForm({
   onSubmit,
   isEditing,
 }) {
+  // Pinned favorites live in localStorage. Loaded once on mount; mutations write through immediately
+  // so closing/reopening the modal reflects the latest state.
+  const [favorites, setFavorites] = useState([]);
+  useEffect(() => {
+    setFavorites(loadExpenseFavorites());
+  }, []);
+
+  function applyFavorite(fav) {
+    // Tap-to-fill behavior: a favorite always sets all three fields, even if they had values — the user explicitly chose this preset, so overwriting is the desired action.
+    onFieldChange("name", fav.name);
+    onFieldChange("category", fav.category || "");
+    onFieldChange("amount", fav.amount ? String(fav.amount) : "");
+  }
+
+  function togglePin() {
+    const name = (expenseForm.name || "").trim();
+    const category = (expenseForm.category || "").trim();
+    const amount = Number.parseFloat(expenseForm.amount) || 0;
+    if (!name) return;
+    if (isExpenseFavorited(favorites, name)) {
+      setFavorites(removeExpenseFavorite(favorites, name));
+    } else {
+      setFavorites(addExpenseFavorite(favorites, { name, category, amount }));
+    }
+  }
+
+  function unpinFavorite(event, name) {
+    event.stopPropagation();
+    setFavorites(removeExpenseFavorite(favorites, name));
+  }
+
   // When the user picks a name that matches a previous expense, gently pre-fill empty fields.
-  // We never overwrite values she's already set \u2014 autocomplete is helpful, not pushy.
+  // We never overwrite values she's already set — autocomplete is helpful, not pushy.
   function handleNameChange(rawValue) {
     onFieldChange("name", rawValue);
     const trimmed = (rawValue || "").trim().toLowerCase();
@@ -64,8 +102,54 @@ export default function ExpenseForm({
     onFieldChange("coversTo", to);
   }
 
+  const trimmedName = (expenseForm.name || "").trim();
+  const canPin = !isEditing && trimmedName.length > 0;
+  const isPinned = canPin && isExpenseFavorited(favorites, trimmedName);
+
   return (
     <form className="tracker-entry-form tracker-entry-form--modal" onSubmit={onSubmit}>
+      {/* Favorites: tap a chip to fill name+category+amount in one go. The small x unpins.
+          Hidden when she's editing an existing row (favorites apply to fresh entries only). */}
+      {!isEditing && favorites.length > 0 ? (
+        <div className="tracker-field">
+          <span>Quick add</span>
+          <div className="tracker-utility-row" style={{ flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+            {favorites.map((fav) => (
+              <span
+                key={fav.name}
+                className="tracker-utility-button"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer", padding: "6px 10px" }}
+                role="button"
+                tabIndex={0}
+                onClick={() => applyFavorite(fav)}
+                onKeyDown={(event) => event.key === "Enter" && applyFavorite(fav)}
+              >
+                <span>{fav.name}</span>
+                {fav.amount ? (
+                  <small style={{ opacity: 0.7 }}>{formatGhs(fav.amount)}</small>
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={`Unpin ${fav.name}`}
+                  onClick={(event) => unpinFavorite(event, fav.name)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "0 2px",
+                    fontSize: "14px",
+                    lineHeight: 1,
+                    opacity: 0.6,
+                  }}
+                >
+                  &times;
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <label className="tracker-field">
         <span>Category</span>
         <select
@@ -192,6 +276,28 @@ export default function ExpenseForm({
           style={{ marginTop: "8px", width: "100%" }}
         >
           Save &amp; add another item
+        </button>
+      ) : null}
+
+      {/* Pin/unpin the current entry as a Quick-add favorite. Disabled until a name is typed. */}
+      {!isEditing ? (
+        <button
+          type="button"
+          onClick={togglePin}
+          disabled={!canPin}
+          style={{
+            marginTop: "8px",
+            width: "100%",
+            background: "transparent",
+            border: "none",
+            color: "var(--tracker-muted, #888)",
+            fontSize: "13px",
+            cursor: canPin ? "pointer" : "default",
+            opacity: canPin ? 1 : 0.5,
+            padding: "6px",
+          }}
+        >
+          {isPinned ? "\u2605 Pinned to Quick add (tap to unpin)" : "\u2606 Pin to Quick add"}
         </button>
       ) : null}
     </form>
