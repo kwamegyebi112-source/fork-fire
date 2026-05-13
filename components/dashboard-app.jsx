@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import DateBar from "@/components/dashboard/date-bar";
+import DaySummaryModal from "@/components/dashboard/day-summary-modal";
 import ExpenseCategoryChart from "@/components/dashboard/expense-category-chart";
 import ExpenseForm from "@/components/dashboard/expense-form";
 import ExpenseList from "@/components/dashboard/expense-list";
@@ -98,6 +99,7 @@ export default function DashboardApp({ displayName, userId }) {
   const [toasts, setToasts] = useState([]);
   const [isSaleComposerOpen, setIsSaleComposerOpen] = useState(false);
   const [isExpenseComposerOpen, setIsExpenseComposerOpen] = useState(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [undoPending, setUndoPending] = useState(null);
   // Recent expense rows used purely as the source for autocomplete + auto-fill in the expense modal.
   // Kept separate from windowed expenseData so suggestions span the whole user history, not just today.
@@ -767,6 +769,19 @@ export default function DashboardApp({ displayName, userId }) {
           />
 
           <SnapshotCard metrics={metrics} dateFilter={dateFilter} isLoading={isLoading} view={activeView} />
+
+          {/* One-tap entry point to the shareable daily summary. Only meaningful when there's data. */}
+          {activeView === "dashboard" && !isLoading && (metrics.saleCount > 0 || metrics.expenseCount > 0) ? (
+            <div className="tracker-utility-row">
+              <button
+                className="tracker-utility-button tracker-utility-button--primary"
+                type="button"
+                onClick={() => setIsSummaryOpen(true)}
+              >
+                Day summary &amp; share
+              </button>
+            </div>
+          ) : null}
         </>
       ) : null}
 
@@ -877,6 +892,19 @@ export default function DashboardApp({ displayName, userId }) {
             isEditing={!!editingSale}
           />
         </ModalShell>
+      ) : null}
+
+      {isSummaryOpen ? (
+        <DaySummaryModal
+          metrics={metrics}
+          dateLabel={dateBounds.from}
+          dateRangeLabel={
+            dateFilter.type === "range"
+              ? `${dateBounds.from} → ${dateBounds.to}`
+              : ""
+          }
+          onClose={() => setIsSummaryOpen(false)}
+        />
       ) : null}
 
       {isExpenseComposerOpen && expenseForm ? (
